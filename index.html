@@ -7,27 +7,19 @@
 <style>
   @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 0.3; } 50% { transform: scale(1.8); opacity: 0; } }
   @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
-  @keyframes spin { to { transform: rotate(360deg); } }
   @keyframes slideIn { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
-  @keyframes fadeGreen { 0% { background-color: #22c55e30; } 100% { background-color: transparent; } }
-  @keyframes gentlePulse { 0%, 100% { box-shadow: 0 0 0 0 #3b82f640; } 70% { box-shadow: 0 0 0 6px #3b82f600; } }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { background: #0a0e17; color: #e2e8f0; font-family: 'Segoe UI', -apple-system, sans-serif; min-height: 100vh; }
   .mono { font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; }
-  input[type=range] { -webkit-appearance: none; width: 100%; height: 6px; border-radius: 3px; background: #1e293b; outline: none; }
-  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: #3b82f6; cursor: pointer; }
-  input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 50%; background: #3b82f6; cursor: pointer; border: none; }
   .cmd-btn { padding: 7px 14px; border-radius: 6px; border: 1px solid #3b82f640; background: #1e3a5f; color: #3b82f6; font-size: 11px; font-weight: 700; cursor: pointer; transition: all 0.2s; text-transform: uppercase; letter-spacing: 0.5px; }
   .cmd-btn:hover { background: #3b82f630; border-color: #3b82f6; }
-  .cmd-btn-red { border-color: #ef444440; background: #3b1111; color: #ef4444; }
-  .cmd-btn-red:hover { background: #ef444425; border-color: #ef4444; }
-  .cmd-btn-green { border-color: #22c55e40; background: #0a3d1f; color: #22c55e; }
-  .cmd-btn-green:hover { background: #22c55e25; border-color: #22c55e; }
-  .cmd-btn-amber { border-color: #f59e0b40; background: #3d2e06; color: #f59e0b; }
-  .cmd-btn-amber:hover { background: #f59e0b25; border-color: #f59e0b; }
   .toast { position: fixed; bottom: 24px; right: 24px; max-width: 440px; padding: 14px 20px; border-radius: 10px; font-size: 12px; font-weight: 600; z-index: 100; animation: slideIn 0.3s ease; display: flex; align-items: center; gap: 10px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); }
   .diagnosis-box { border-radius: 8px; padding: 12px 14px; font-size: 12px; line-height: 1.6; }
   .operator-action { border-radius: 8px; padding: 10px 14px; font-size: 12px; line-height: 1.5; display: flex; gap: 10px; align-items: flex-start; }
+  .zone-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; padding: 4px 10px; border-radius: 4px; display: inline-flex; align-items: center; gap: 6px; }
+  .signal-step { display: flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 6px; font-size: 11px; }
+  .signal-arrow { color: #475569; font-size: 12px; flex-shrink: 0; }
+  .domain-tag { font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 3px; letter-spacing: 0.8px; }
 </style>
 </head>
 <body>
@@ -46,8 +38,13 @@ const C = {
   amber:"#f59e0b",amberDim:"#3d2e06",
   cyan:"#06b6d4",cyanDim:"#0a2d36",
   purple:"#a855f7",purpleDim:"#2a1545",
+  orange:"#f97316",orangeDim:"#3d1d06",
   text:"#e2e8f0",dim:"#64748b",muted:"#475569",white:"#fff",
 };
+
+// Domain colors — IT is cyan, OT is orange
+const IT = {color:C.cyan,bg:C.cyanDim,label:"IT"};
+const OT = {color:C.orange,bg:C.orangeDim,label:"OT"};
 
 // ---- SHARED COMPONENTS ----
 const Dot = ({status,size=8,pulse=false}) => {
@@ -58,7 +55,11 @@ const Dot = ({status,size=8,pulse=false}) => {
   </span>;
 };
 
-const Panel = ({title,bodyPart,icon,status,children,span=1}) => {
+const DomainTag = ({domain}) => <span className="domain-tag" style={{
+  backgroundColor:domain.bg,color:domain.color,border:`1px solid ${domain.color}30`
+}}>{domain.label}</span>;
+
+const Panel = ({title,bodyPart,icon,status,zone,domain,children,span=1}) => {
   const borderColor = status==="ok"?C.green+"40":status==="warn"?C.amber+"40":status==="error"?C.red+"60":status==="info"?C.cyan+"40":C.border;
   return <div style={{
     backgroundColor:C.panel,border:`1px solid ${C.border}`,borderRadius:12,padding:"16px 20px",
@@ -67,12 +68,16 @@ const Panel = ({title,bodyPart,icon,status,children,span=1}) => {
     <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
       <div style={{display:"flex",alignItems:"center",gap:8}}>
         <span style={{fontSize:16}}>{icon}</span>
-        <div>
+        <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}}>
           <span style={{fontSize:12,fontWeight:700,textTransform:"uppercase",letterSpacing:1.2,color:C.dim}}>{title}</span>
-          {bodyPart&&<span style={{fontSize:10,color:C.muted,marginLeft:8}}>The {bodyPart}</span>}
+          {bodyPart&&<span style={{fontSize:10,color:C.muted}}>The {bodyPart}</span>}
+          {domain&&<DomainTag domain={domain}/>}
         </div>
       </div>
-      <Dot status={status} pulse/>
+      <div style={{display:"flex",alignItems:"center",gap:6}}>
+        {zone&&<span style={{fontSize:9,color:C.muted,fontWeight:600,letterSpacing:0.5}}>{zone}</span>}
+        <Dot status={status} pulse/>
+      </div>
     </div>
     {children}
   </div>;
@@ -88,13 +93,13 @@ const Metric = ({label,value,unit,status,small}) => <div style={{display:"flex",
   </div>
 </div>;
 
-const IOPin = ({pin,label,commanded,actual,fault}) => {
+const IOPin = ({pin,label,commanded,actual}) => {
   const hasFault = commanded&&!actual;
   return <div style={{display:"flex",alignItems:"center",gap:8,padding:"5px 10px",borderRadius:6,
     backgroundColor:hasFault?C.redDim:commanded&&actual?C.greenDim:"transparent",
     border:`1px solid ${hasFault?C.red+"40":"transparent"}`}}>
     <span className="mono" style={{fontSize:10,color:C.muted,width:32}}>P{pin}</span>
-    <span style={{fontSize:11,color:C.dim,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{label}</span>
+    <span className="mono" style={{fontSize:11,color:C.dim,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{label}</span>
     <div style={{display:"flex",gap:4,alignItems:"center"}}>
       {hasFault&&<span style={{fontSize:9,fontWeight:700,color:C.red,animation:"blink 1s step-end infinite"}}>FAULT</span>}
       {!hasFault&&<>
@@ -132,8 +137,8 @@ const Toast = ({message,type,visible}) => {
   return <div className="toast" style={{backgroundColor:bg,border:`1px solid ${borderC}40`,color}}>{icon} {message}</div>;
 };
 
-// Diagnosis panel — what the twin sees + what the operator does
-const DiagnosisPanel = ({diagnosis, operatorAction, remoteFix}) => {
+// Diagnosis panel
+const DiagnosisPanel = ({diagnosis, operatorAction, remoteFix, traceSteps}) => {
   if(!diagnosis) return null;
   return <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:16,animation:"slideIn 0.3s ease"}}>
     <div style={{padding:"16px 20px",backgroundColor:C.panel,borderRadius:12,border:`1px solid ${C.red}30`,borderTop:`2px solid ${C.red}60`}}>
@@ -144,6 +149,19 @@ const DiagnosisPanel = ({diagnosis, operatorAction, remoteFix}) => {
       <div className="diagnosis-box" style={{backgroundColor:C.redDim,border:`1px solid ${C.red}30`,color:C.text}}>
         <span className="mono" style={{color:C.red,fontWeight:700}}>{diagnosis}</span>
       </div>
+      {traceSteps&&<div style={{marginTop:10}}>
+        <div style={{fontSize:10,color:C.muted,marginBottom:6,textTransform:"uppercase",letterSpacing:0.8}}>Diagnostic Trace (Physical → Logical)</div>
+        <div style={{display:"flex",flexDirection:"column",gap:2}}>
+          {traceSteps.map((s,i)=><div key={i} className="signal-step" style={{
+            backgroundColor:s.status==="fault"?C.redDim:s.status==="ok"?C.greenDim:C.bg,
+            border:`1px solid ${s.status==="fault"?C.red+"30":s.status==="ok"?C.green+"20":C.border}`,
+          }}>
+            <span style={{fontSize:10,width:16,textAlign:"center"}}>{s.status==="fault"?"✗":s.status==="ok"?"✓":"—"}</span>
+            <span style={{color:s.status==="fault"?C.red:s.status==="ok"?C.green:C.dim}}>{s.label}</span>
+            {s.detail&&<span className="mono" style={{marginLeft:"auto",fontSize:10,color:s.status==="fault"?C.red:C.muted}}>{s.detail}</span>}
+          </div>)}
+        </div>
+      </div>}
     </div>
     <div style={{display:"grid",gridTemplateColumns:remoteFix?"1fr 1fr":"1fr",gap:10}}>
       <div style={{padding:"16px 20px",backgroundColor:C.panel,borderRadius:12,border:`1px solid ${C.green}30`,borderTop:`2px solid ${C.green}60`}}>
@@ -176,7 +194,6 @@ function App() {
   const [tick,setTick] = useState(0);
   const [scenario,setScenario] = useState("healthy");
 
-  // Toast + log
   const [toast,setToast] = useState({message:"",type:"success",visible:false});
   const toastTimer = useRef(null);
   const [cmdLog,setCmdLog] = useState([]);
@@ -199,38 +216,51 @@ function App() {
     setCmdLog([]);
     if(scenario==="healthy") return;
     if(scenario==="wire_fault"){
-      addLog("NERVOUS SYSTEM → Pin 14 open circuit detected. Belt FWD commanded ON — no motion sensed.","fault");
-      addLog("DIAGNOSIS → Fault isolated to Pin 14 in 25-pin umbilical. Passenger-side bulkhead connector.","diagnosis");
-      showToast("Twin detected: Pin 14 open circuit — belt not responding to PLC command","error");
+      addLog("TRACE → 1. Fuji button (Saginaw enclosure): PRESSED","trace");
+      addLog("TRACE → 2. M12 cable to Murrelektronik bulkhead: OK","trace");
+      addLog("TRACE → 3. 25-pin trunk (passenger side): Pin 14 — OPEN CIRCUIT","fault");
+      addLog("TRACE → 4. ZipLink breakout (Cab): No signal received","fault");
+      addLog("TRACE → 5. FX5UC PLC: doBelt[\"FWD\"] = TRUE but no actuation","fault");
+      addLog("DIAGNOSIS → Fault isolated to Pin 14 in 25-pin trunk cable, passenger side. Physical break between Murrelektronik bulkhead and ZipLink termination.","diagnosis");
+      showToast("Twin detected: Pin 14 open circuit — traced from Fuji switch through 25-pin trunk to ZipLink","error");
     }
     if(scenario==="apera_crash"){
-      addLog("NERVOUS SYSTEM → Apera Server 1 last inference was 12 minutes ago. Process not responding.","fault");
-      addLog("DIAGNOSIS → CPU temp normal. Network connected. Software process crashed — not hardware.","diagnosis");
-      showToast("Twin detected: Apera Server 1 process not responding — vision offline","error");
+      addLog("NERVOUS SYSTEM → Apera Server 1 (Front Dell, Zone 1): last inference 12 min ago.","fault");
+      addLog("TRACE → AC power plane (120V from Zone 2 inverter): OK","trace");
+      addLog("TRACE → Netgear switch port: LINK UP. Network path: TRENDnet PoE → Netgear → Dell Server 1.","trace");
+      addLog("DIAGNOSIS → CPU temp normal. Network connected. Apera process not responding — software crash, not hardware.","diagnosis");
+      showToast("Twin detected: Apera Server 1 process not responding — IT domain, Zone 1","error");
     }
     if(scenario==="servo_fault"){
       addLog("NERVOUS SYSTEM → Stäubli servo fault: Axis 3 following error. Arm stopped.","fault");
-      addLog("DIAGNOSIS → Schunk controller powered. EtherCAT link healthy. Recoverable software fault — not mechanical.","diagnosis");
-      showToast("Twin detected: Stäubli servo fault on Axis 3 — recoverable","error");
+      addLog("TRACE → EtherCAT link (OT domain, dedicated bus): HEALTHY","trace");
+      addLog("TRACE → Schunk UXB 24V controller (Zone 3 control box): POWERED, 24V DC from Rhino PSR OK","trace");
+      addLog("DIAGNOSIS → Recoverable software fault on Axis 3. EtherCAT deterministic link intact. Not mechanical failure.","diagnosis");
+      showToast("Twin detected: Stäubli servo fault on Axis 3 — OT domain, EtherCAT healthy","error");
     }
     if(scenario==="router_freeze"){
-      addLog("NERVOUS SYSTEM → Stride Linx unresponsive. 6 consecutive pings failed. VPN down.","fault");
-      addLog("NERVOUS SYSTEM → Twin still alive on independent cellular backhaul. Reporting through backup.","info");
-      showToast("Twin detected: Router frozen — reporting via independent cellular connection","error");
+      addLog("NERVOUS SYSTEM → Stride Linx VPN router (Zone 1): unresponsive. 6 pings failed.","fault");
+      addLog("NERVOUS SYSTEM → Pi cellular backhaul independent of Stride Linx. Twin still reporting.","info");
+      addLog("TRACE → Netgear switch: UP. Dell servers: reachable. EtherCAT: healthy. Telemetry network only.","trace");
+      showToast("Twin detected: Stride Linx frozen — telemetry VPN down, Pi reporting via cellular","error");
     }
     if(scenario==="gripper_stuck"){
-      addLog("NERVOUS SYSTEM → Gripper command OFF but part still detected on sensor.","fault");
-      addLog("DIAGNOSIS → Schunk controller healthy. Magnetic gripper — likely residual magnetism, not software.","diagnosis");
-      showToast("Twin detected: Gripper won't release — residual magnetism suspected","warning");
+      addLog("NERVOUS SYSTEM → doGripper_EGM[\"MAG\"] = OFF but part sensor reads PRESENT.","fault");
+      addLog("TRACE → Schunk UXB 24V controller (Zone 3 control box): HEALTHY","trace");
+      addLog("TRACE → 24V DC plane (Rhino PSR → Schunk): Voltage nominal","trace");
+      addLog("DIAGNOSIS → Magnetic gripper residual magnetism. Not a software or electrical fault. Operator clears part manually.","diagnosis");
+      showToast("Twin detected: Gripper won't release — Schunk UXB healthy, residual magnetism","warning");
     }
     if(scenario==="apera_drift"){
-      addLog("NERVOUS SYSTEM → Apera pick confidence dropped from 95% to 62% over last shift.","warn");
-      addLog("DIAGNOSIS → Cameras connected. Servers running. Camera 2 auto-adjusted exposure — ambient light change.","diagnosis");
-      showToast("Twin detected: Vision accuracy degrading — likely lighting change on site","warning");
+      addLog("NERVOUS SYSTEM → Apera pick confidence: 62% (baseline 95%). Dropping over last shift.","warn");
+      addLog("TRACE → Vision network: TRENDnet PoE (Zone 3) → Netgear (Zone 1) → Dell servers: ALL HEALTHY","trace");
+      addLog("TRACE → Camera 2 exposure auto-adjusted. Ambient light change detected on site.","trace");
+      addLog("DIAGNOSIS → IT domain healthy. Environmental change — site crew likely moved a light.","diagnosis");
+      showToast("Twin detected: Vision accuracy degrading — cameras healthy, lighting changed on site","warning");
     }
   },[scenario]);
 
-  // Derived states per scenario
+  // Derived states
   const isHealthy = scenario==="healthy";
   const isWireFault = scenario==="wire_fault";
   const isAperaCrash = scenario==="apera_crash";
@@ -238,46 +268,89 @@ function App() {
   const isRouterFreeze = scenario==="router_freeze";
   const isGripperStuck = scenario==="gripper_stuck";
   const isAperaDrift = scenario==="apera_drift";
-
   const overallStatus = isHealthy?"ok":"error";
 
-  // Diagnosis content per scenario
+  // Diagnosis content per scenario with trace steps
   const diagnosisMap = {
     wire_fault: {
-      diagnosis: "Belt Motor: commanded ON. Belt Motion: none. Fault isolated to Pin 14 — open circuit.",
-      operatorAction: "\"Tighten Pin 14 on the passenger-side bulkhead connector.\" Fixed in 5 minutes.",
+      diagnosis: "doBelt[\"FWD\"] = TRUE. Belt motion: none. Fault isolated to Pin 14 — open circuit in 25-pin trunk cable (passenger side).",
+      operatorAction: "\"Tighten Pin 14 on the passenger-side bulkhead connector where the 25-pin trunk meets the ZipLink breakout in the cab.\" Fixed in 5 minutes.",
       remoteFix: null,
+      traceSteps: [
+        {label:"Fuji button in Saginaw enclosure (Zone 3)",detail:"PRESSED",status:"ok"},
+        {label:"M12 cable → Murrelektronik bulkhead",detail:"CONTINUITY",status:"ok"},
+        {label:"25-pin trunk cable (passenger side run)",detail:"PIN 14 OPEN",status:"fault"},
+        {label:"ZipLink breakout board (Zone 1 cab)",detail:"NO SIGNAL",status:"fault"},
+        {label:"FX5UC PLC terminal input",detail:"doBelt[\"FWD\"]=TRUE, no actuation",status:"fault"},
+        {label:"Motor contactor (24V DC)",detail:"NOT ENERGIZED",status:"fault"},
+      ],
     },
     apera_crash: {
-      diagnosis: "Apera Server 1: last inference 12 minutes ago. CPU temp: normal. Network: connected. Status: process not responding.",
-      operatorAction: "\"Open the cab, press the power button on the left Dell server for 3 seconds.\" Back online in 2 minutes.",
-      remoteFix: "Restart the Apera service remotely through the twin's SSH tunnel. If remote restart fails, guide the operator.",
+      diagnosis: "Apera Server 1 (Front Dell, Zone 1): last inference 12 min ago. CPU temp: normal. Network: connected via Netgear trunk. Status: process not responding.",
+      operatorAction: "\"Open the cab, press the power button on the left Dell server for 3 seconds.\" It's on the 120V AC plane — the server itself is fine, just the Apera process crashed.",
+      remoteFix: "Restart the Apera service remotely via Stride Linx VPN tunnel. If process restart fails, guide operator to power-cycle the Dell.",
+      traceSteps: [
+        {label:"120V AC plane (Generator → Inverter → Cab)",detail:"VOLTAGE OK",status:"ok"},
+        {label:"Netgear switch port (Zone 1)",detail:"LINK UP",status:"ok"},
+        {label:"TRENDnet PoE → Netgear trunk (camera path)",detail:"CONNECTED",status:"ok"},
+        {label:"Dell Server 1 hardware",detail:"CPU NORMAL, POWERED",status:"ok"},
+        {label:"Apera vision process",detail:"NOT RESPONDING",status:"fault"},
+      ],
     },
     servo_fault: {
-      diagnosis: "Stäubli servo fault: Axis 3 — following error. EtherCAT link: healthy. Schunk controller: powered.",
-      operatorAction: "If mechanical: operator describes the issue or swaps the part with our guidance. We know exactly what's wrong.",
-      remoteFix: "Clear the recoverable fault remotely and re-home the arm. No drive required.",
+      diagnosis: "Stäubli servo fault: Axis 3 — following error. EtherCAT bus (dedicated OT line): healthy. Schunk UXB 24V controller (Zone 3): powered.",
+      operatorAction: "If mechanical: operator describes the issue from the Saginaw HMI panel or swaps the part with our guidance. We read the exact fault code from the Schunk controller.",
+      remoteFix: "Clear the recoverable fault remotely and re-home the arm. Schunk controller is on the EtherCAT bus — we can read every register from Louisville.",
+      traceSteps: [
+        {label:"24V DC plane (Rhino PSR → Schunk)",detail:"VOLTAGE OK",status:"ok"},
+        {label:"EtherCAT bus (dedicated OT, hard real-time)",detail:"LINK HEALTHY",status:"ok"},
+        {label:"Schunk UXB 24V controller (Zone 3)",detail:"POWERED",status:"ok"},
+        {label:"Stäubli Axis 3 servo",detail:"FOLLOWING ERROR",status:"fault"},
+        {label:"Fault classification",detail:"RECOVERABLE (SW)",status:"ok"},
+      ],
     },
     router_freeze: {
-      diagnosis: "Stride Linx: unresponsive. Twin still alive on independent cellular backhaul. All other systems still reporting.",
-      operatorAction: "\"Flip the labeled switch on the IT rack to reboot the router.\" Back online in 90 seconds.",
-      remoteFix: "Press the reset button through the twin's cellular connection. Power-cycle the relay remotely.",
+      diagnosis: "Stride Linx VPN router (Zone 1): unresponsive. Twin still alive on Pi cellular backhaul. Vision/IT and Motion/OT networks unaffected — only telemetry is down.",
+      operatorAction: "\"Flip the labeled switch on the IT rack in the cab to reboot the Stride Linx.\" Back online in 90 seconds. All other systems still running.",
+      remoteFix: "Power-cycle the Stride Linx via Pi GPIO relay through the cellular backhaul. The Pi's connection is independent of the Stride Linx.",
+      traceSteps: [
+        {label:"Vision/IT network (Netgear → Dell servers)",detail:"HEALTHY",status:"ok"},
+        {label:"Motion/OT network (EtherCAT bus)",detail:"HEALTHY",status:"ok"},
+        {label:"Stride Linx VPN (telemetry network)",detail:"UNRESPONSIVE",status:"fault"},
+        {label:"Pi cellular backhaul (independent)",detail:"CONNECTED",status:"ok"},
+      ],
     },
     gripper_stuck: {
-      diagnosis: "Gripper command: OFF. Part still detected. Schunk controller healthy. Likely residual magnetism — not a software issue.",
-      operatorAction: "Clear the part manually, knowing the system is fine. No time wasted chasing a ghost.",
+      diagnosis: "doGripper_EGM[\"MAG\"] = OFF. Part sensor: PRESENT. Schunk UXB 24V controller (Zone 3): healthy. 24V DC plane nominal. Likely residual magnetism.",
+      operatorAction: "Clear the part manually from the gripper. The system is healthy — this is residual magnetism in the magnetic gripper, not a software or electrical fault.",
       remoteFix: null,
+      traceSteps: [
+        {label:"FX5UC PLC output: doGripper_EGM[\"MAG\"]",detail:"OFF (CORRECT)",status:"ok"},
+        {label:"24V DC plane (Rhino PSR → Schunk UXB)",detail:"VOLTAGE OK",status:"ok"},
+        {label:"Schunk UXB 24V controller (Zone 3)",detail:"HEALTHY",status:"ok"},
+        {label:"Gripper magnet",detail:"DE-ENERGIZED",status:"ok"},
+        {label:"Part presence sensor",detail:"STILL DETECTED",status:"fault"},
+        {label:"Root cause",detail:"RESIDUAL MAGNETISM",status:"warn"},
+      ],
     },
     apera_drift: {
-      diagnosis: "Apera pick confidence: 62% (normal: 95%). Camera 2 exposure: auto-adjusted to compensate for ambient light change.",
-      operatorAction: "Reposition a work light if the cameras show an obvious shadow or glare change.",
-      remoteFix: "Pull up the camera feed through the twin and adjust the vision parameters from our laptops. Truck never stops.",
+      diagnosis: "Apera pick confidence: 62% (normal: 95%). Camera 2 exposure auto-adjusted. Vision network (TRENDnet PoE → Netgear → Dell): all healthy. Environmental lighting change.",
+      operatorAction: "Reposition the work light that the site crew moved. The cameras adjusted exposure automatically but the angle changed enough to degrade pick confidence.",
+      remoteFix: "Pull up the camera feed through the Stride Linx VPN and adjust Apera vision parameters from our laptops. Or guide operator to reposition the light. Truck never stops.",
+      traceSteps: [
+        {label:"TRENDnet PoE switch (Zone 3, cameras)",detail:"ALL PORTS UP",status:"ok"},
+        {label:"Netgear trunk (Zone 1, IT backbone)",detail:"LINK HEALTHY",status:"ok"},
+        {label:"Dell Apera servers (Zone 1)",detail:"RUNNING",status:"ok"},
+        {label:"Apera pick confidence",detail:"62% (↓33%)",status:"fault"},
+        {label:"Camera 2 auto-exposure",detail:"COMPENSATING",status:"warn"},
+        {label:"Root cause",detail:"AMBIENT LIGHT CHANGE",status:"warn"},
+      ],
     },
   };
 
   const currentDiagnosis = diagnosisMap[scenario] || null;
 
-  return <div style={{padding:24,maxWidth:1440,margin:"0 auto"}}>
+  return <div style={{padding:24,maxWidth:1520,margin:"0 auto"}}>
     <Toast message={toast.message} type={toast.type} visible={toast.visible}/>
 
     {/* Header */}
@@ -289,7 +362,11 @@ function App() {
           <div style={{fontSize:11,color:C.muted,marginTop:2}}>Louisville, KY → Field Site &bull; Nervous System: <span style={{color:C.green}}>Online</span> &bull; Last update: {tick%2===0?"just now":"1s ago"}</div>
         </div>
       </div>
-      <div style={{display:"flex",alignItems:"center",gap:8}}>
+      <div style={{display:"flex",alignItems:"center",gap:12}}>
+        <div style={{display:"flex",gap:6}}>
+          <DomainTag domain={IT}/>
+          <DomainTag domain={OT}/>
+        </div>
         <Dot status={overallStatus} size={10} pulse/>
         <span style={{fontSize:13,fontWeight:700,letterSpacing:0.5,
           color:overallStatus==="ok"?C.green:C.red}}>
@@ -298,39 +375,9 @@ function App() {
       </div>
     </div>
 
-    {/* The Problem — shown only in healthy state */}
-    {isHealthy&&<div style={{
-      marginBottom:16,padding:"20px 24px",backgroundColor:C.panel,borderRadius:12,border:`1px solid ${C.border}`,
-      display:"flex",gap:24,alignItems:"center",flexWrap:"wrap",
-    }}>
-      <div style={{flex:1,minWidth:300}}>
-        <div style={{fontSize:14,fontWeight:700,color:C.text,marginBottom:6}}>The Truck Can't Tell Us Where It Hurts.</div>
-        <div style={{fontSize:12,color:C.dim,lineHeight:1.7}}>
-          Every time RAIV #3 goes down, somebody drives five hours. They find a loose pin, a frozen router, or a crashed server. They fix it in minutes. Then they drive five hours back. The operator was standing right next to the truck the whole time — they could have fixed it. But nobody could tell them what was wrong.
-        </div>
-        <div style={{fontSize:12,color:C.muted,marginTop:8,fontStyle:"italic"}}>
-          We're not driving because the fix is complicated. We're driving because the diagnosis is impossible from here.
-        </div>
-      </div>
-      <div style={{display:"flex",gap:16}}>
-        <div style={{textAlign:"center",padding:"12px 16px",borderRadius:8,backgroundColor:C.redDim,border:`1px solid ${C.red}30`,minWidth:100}}>
-          <div className="mono" style={{fontSize:28,fontWeight:800,color:C.red}}>10 hrs</div>
-          <div style={{fontSize:10,color:C.dim,marginTop:4}}>Round-trip to diagnose</div>
-        </div>
-        <div style={{textAlign:"center",padding:"12px 16px",borderRadius:8,backgroundColor:C.greenDim,border:`1px solid ${C.green}30`,minWidth:100}}>
-          <div className="mono" style={{fontSize:28,fontWeight:800,color:C.green}}>5 min</div>
-          <div style={{fontSize:10,color:C.dim,marginTop:4}}>Typical actual repair</div>
-        </div>
-        <div style={{textAlign:"center",padding:"12px 16px",borderRadius:8,backgroundColor:C.amberDim,border:`1px solid ${C.amber}30`,minWidth:100}}>
-          <div className="mono" style={{fontSize:28,fontWeight:800,color:C.amber}}>2 jobs</div>
-          <div style={{fontSize:10,color:C.dim,marginTop:4}}>Lost per trip</div>
-        </div>
-      </div>
-    </div>}
-
     {/* Scenario buttons */}
     <div style={{display:"flex",gap:6,marginBottom:16,flexWrap:"wrap",padding:"10px 14px",backgroundColor:C.panel,borderRadius:10,border:`1px solid ${C.border}`}}>
-      <span style={{fontSize:11,color:C.muted,alignSelf:"center",marginRight:6}}>SIMULATE FAILURE:</span>
+      <span style={{fontSize:11,color:C.muted,alignSelf:"center",marginRight:6}}>SCENARIO:</span>
       {[
         {id:"healthy",label:"All Healthy",e:"✅"},
         {id:"wire_fault",label:"Broken Wire (Pin 14)",e:"🔌"},
@@ -354,18 +401,19 @@ function App() {
       diagnosis={currentDiagnosis.diagnosis}
       operatorAction={currentDiagnosis.operatorAction}
       remoteFix={currentDiagnosis.remoteFix}
+      traceSteps={currentDiagnosis.traceSteps}
     />}
 
-    {/* Grid — the body of the truck */}
+    {/* Main system panels grid */}
     <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:14}}>
 
       {/* STÄUBLI — The Brain */}
-      <Panel title="Stäubli Robot Arm" bodyPart="Brain" icon="🧠" status={isServoFault?"error":"ok"}>
+      <Panel title="Stäubli Robot Arm" bodyPart="Brain" icon="🧠" status={isServoFault?"error":"ok"} zone="Z3 REAR" domain={OT}>
         <Metric label="EtherCAT Link" value="HEALTHY" status="ok"/>
-        <Metric label="Schunk UXB Controller" value="POWERED" status="ok"/>
+        <Metric label="Schunk UXB 24V (Zone 3)" value="POWERED" status="ok"/>
         <Metric label="Servo Status" value={isServoFault?"FAULT — AXIS 3":"ALL NOMINAL"} status={isServoFault?"error":"ok"}/>
         {isServoFault&&<div className="diagnosis-box" style={{backgroundColor:C.redDim,border:`1px solid ${C.red}30`,color:C.amber,fontSize:11}}>
-          Axis 3: following error (recoverable). EtherCAT healthy, Schunk powered. This is a software fault, not mechanical failure.
+          Axis 3: following error (recoverable). EtherCAT bus healthy, Schunk UXB powered on 24V DC from Rhino PSR. Software fault, not mechanical.
         </div>}
         <div style={{borderTop:`1px solid ${C.border}`,paddingTop:8,marginTop:4}}>
           <div style={{fontSize:10,color:C.muted,marginBottom:6,textTransform:"uppercase",letterSpacing:0.8}}>Joint Positions (°)</div>
@@ -376,18 +424,15 @@ function App() {
             </div>)}
           </div>
         </div>
-        <div style={{fontSize:10,color:C.muted,lineHeight:1.5,fontStyle:"italic",padding:"2px 0"}}>
-          Six axes of real-time motion via Schunk UXB over EtherCAT. When it faults, the error code is right here — no drive needed.
-        </div>
       </Panel>
 
       {/* APERA — The Eyes */}
-      <Panel title="Apera AI Vision" bodyPart="Eyes" icon="👁" status={isAperaCrash?"error":isAperaDrift?"warn":"ok"}>
+      <Panel title="Apera AI Vision" bodyPart="Eyes" icon="👁" status={isAperaCrash?"error":isAperaDrift?"warn":"ok"} zone="Z1 CAB" domain={IT}>
         <Metric label="Server 1 (Front Dell)" value={isAperaCrash?"NOT RESPONDING":"RUNNING"} status={isAperaCrash?"error":"ok"}/>
         <Metric label="Server 2 (Rear Dell)" value="RUNNING" status="ok"/>
         <Metric label="Last Inference" value={isAperaCrash?"12 min ago":"< 1 sec"} status={isAperaCrash?"error":"ok"}/>
         {isAperaCrash&&<div className="diagnosis-box" style={{backgroundColor:C.redDim,border:`1px solid ${C.red}30`,color:C.amber,fontSize:11}}>
-          Server 1 process crashed. CPU temp normal, network connected. Software issue — power cycle or remote restart will fix it.
+          Server 1 process crashed. 120V AC plane healthy (Generator → Inverter → Cab). Netgear link up. Software issue — power cycle or remote restart.
         </div>}
         <div style={{borderTop:`1px solid ${C.border}`,paddingTop:8,marginTop:4}}>
           <Bar label="Pick Confidence" value={isAperaCrash?0:isAperaDrift?j(62,3):j(96.4,2)} unit="%" status={isAperaCrash?"error":isAperaDrift?"warn":"ok"}/>
@@ -395,104 +440,147 @@ function App() {
           <Bar label="Vision FPS" value={isAperaCrash?0:j(28,3)} max={30} unit=" fps" status={isAperaCrash?"error":"ok"}/>
         </div>
         {isAperaDrift&&<div className="diagnosis-box" style={{backgroundColor:C.amberDim,border:`1px solid ${C.amber}30`,color:C.amber,fontSize:11}}>
-          Confidence dropped from 95% → 62% this shift. Camera 2 exposure auto-adjusted — ambient lighting changed on site.
+          Confidence 95% → 62% this shift. Camera path (TRENDnet PoE → Netgear → Dell) healthy. Camera 2 auto-adjusted exposure — ambient light changed.
         </div>}
         <div style={{height:60,borderRadius:6,backgroundColor:C.bg,border:`1px solid ${C.border}`,display:"flex",alignItems:"center",justifyContent:"center"}}>
-          <div style={{textAlign:"center"}}><div style={{fontSize:18}}>📷</div><span style={{fontSize:10,color:C.muted}}>Camera Feed — Live</span></div>
-        </div>
-        <div style={{fontSize:10,color:C.muted,lineHeight:1.5,fontStyle:"italic",padding:"2px 0"}}>
-          The AI that makes the truck smart. Sees parts, decides what to pick. If the eyes go down, the brain has nothing to work with.
+          <div style={{textAlign:"center"}}><div style={{fontSize:18}}>📷</div><span style={{fontSize:10,color:C.muted}}>PoE Camera Feed — via TRENDnet (Z3) → Netgear (Z1)</span></div>
         </div>
       </Panel>
 
       {/* PLC — The Spine */}
-      <Panel title="Mitsubishi FX5UC PLC" bodyPart="Spine" icon="🦴" status="ok">
+      <Panel title="Mitsubishi FX5UC PLC" bodyPart="Spine" icon="🦴" status="ok" zone="Z1 CAB" domain={OT}>
         <Metric label="PLC Status" value="RUN" status="ok"/>
         <Metric label="Scan Cycle" value={j(4.2,0.5)} unit="ms" status="ok"/>
+        <Metric label="24V DC (Rhino PSR)" value="NOMINAL" status="ok"/>
         <div style={{borderTop:`1px solid ${C.border}`,paddingTop:8,marginTop:4}}>
-          <div style={{fontSize:10,color:C.muted,marginBottom:6,textTransform:"uppercase",letterSpacing:0.8}}>Key Digital Outputs</div>
+          <div style={{fontSize:10,color:C.muted,marginBottom:6,textTransform:"uppercase",letterSpacing:0.8}}>Digital I/O (ZipLink → PLC Terminals)</div>
           <div style={{display:"flex",flexDirection:"column",gap:3}}>
-            <IOPin pin="03" label='doBelt[FWD]' commanded={true} actual={!isWireFault}/>
-            <IOPin pin="07" label='doGripper_EGM[MAG]' commanded={isGripperStuck?false:false} actual={false}/>
-            <IOPin pin="11" label='diServo[Enable]' commanded={true} actual={true}/>
-            <IOPin pin="14" label='doConveyor[Enable]' commanded={true} actual={!isWireFault}/>
-            <IOPin pin="19" label='doSafetyStop' commanded={false} actual={false}/>
+            <IOPin pin="03" label='doBelt["FWD"]' commanded={true} actual={!isWireFault}/>
+            <IOPin pin="07" label='doGripper_EGM["MAG"]' commanded={false} actual={false}/>
+            <IOPin pin="11" label='diServo["Enable"]' commanded={true} actual={true}/>
+            <IOPin pin="14" label='doConveyor["Enable"]' commanded={true} actual={!isWireFault}/>
+            <IOPin pin="19" label='doSafteyStop' commanded={false} actual={false}/>
           </div>
-        </div>
-        <div style={{fontSize:10,color:C.muted,lineHeight:1.5,fontStyle:"italic",padding:"2px 0"}}>
-          The central switchboard. Every signal passes through here. The spine sends a signal — the nervous system can feel whether it arrived.
         </div>
       </Panel>
 
       {/* BELT & GRIPPER — The Muscles */}
-      <Panel title="Belt & Gripper" bodyPart="Muscles" icon="💪" status={isWireFault?"error":isGripperStuck?"warn":"ok"}>
+      <Panel title="Belt & Gripper" bodyPart="Muscles" icon="💪" status={isWireFault?"error":isGripperStuck?"warn":"ok"} zone="Z3 REAR" domain={OT}>
         <Bar label="Belt Speed" value={isWireFault?0:j(92,4)} unit="%" status={isWireFault?"error":"ok"}/>
         <Metric label="Belt Current" value={isWireFault?"0.0":j(4.2,0.5)} unit="A" status={isWireFault?"error":"ok"}/>
         <Metric label="Belt Direction" value={isWireFault?"STOPPED":"FORWARD"} status={isWireFault?"error":"ok"}/>
         <div style={{borderTop:`1px solid ${C.border}`,paddingTop:8,marginTop:4}}>
           <Metric label="Gripper State" value={isGripperStuck?"STUCK — PART DETECTED":"RELEASED"} status={isGripperStuck?"warn":"ok"}/>
-          <Metric label="Gripper Command" value={isGripperStuck?"OFF":"OFF"} status={isGripperStuck?"warn":"ok"}/>
+          <Metric label='doGripper_EGM["MAG"]' value={isGripperStuck?"OFF (part stuck)":"OFF"} status={isGripperStuck?"warn":"ok"}/>
+          <Metric label="Schunk UXB 24V" value="HEALTHY" status="ok"/>
           <Metric label="Gripper Cycles Today" value="847" unit=""/>
         </div>
         {isGripperStuck&&<div className="diagnosis-box" style={{backgroundColor:C.amberDim,border:`1px solid ${C.amber}30`,color:C.amber,fontSize:11}}>
-          Command says OFF but part sensor says present. Schunk controller healthy. Residual magnetism — not a software bug. Operator clears manually.
+          doGripper_EGM["MAG"] = OFF but part sensor reads present. Schunk UXB healthy on 24V DC. Residual magnetism — not software. Operator clears manually.
         </div>}
-        <div style={{fontSize:10,color:C.muted,lineHeight:1.5,fontStyle:"italic",padding:"2px 0"}}>
-          The workhorses. Belt carries material; gripper picks and places. Dependent on clean signals through the 25-pin cable from the spine.
-        </div>
       </Panel>
 
-      {/* NETWORK */}
-      <Panel title="Network & Connectivity" icon="📡" status={isRouterFreeze?"error":"ok"}>
-        <Metric label="Stride Linx VPN" value={isRouterFreeze?"UNRESPONSIVE":"CONNECTED"} status={isRouterFreeze?"error":"ok"}/>
-        <Metric label="Pi Cellular (Independent)" value="CONNECTED" status="ok"/>
-        <Metric label="Netgear Switch" value="ALL PORTS UP" status="ok"/>
-        <Metric label="TRENDnet PoE (Rear)" value="ONLINE" status="ok"/>
+      {/* NETWORK & POWER */}
+      <Panel title="Network & Power" icon="📡" status={isRouterFreeze?"error":"ok"} zone="Z1+Z2+Z3">
+        <div style={{fontSize:10,color:C.muted,marginBottom:2,textTransform:"uppercase",letterSpacing:0.8}}>Communication Networks</div>
+        <Metric label="Vision/IT (Ethernet/PoE)" value={isAperaCrash||isAperaDrift?"DEGRADED":"HEALTHY"} status={isAperaCrash?"error":isAperaDrift?"warn":"ok"} small/>
+        <Metric label="Motion/OT (EtherCAT)" value="HEALTHY" status="ok" small/>
+        <Metric label="Telemetry (Stride Linx VPN)" value={isRouterFreeze?"UNRESPONSIVE":"CONNECTED"} status={isRouterFreeze?"error":"ok"} small/>
+        <Metric label="Pi Cellular (Independent)" value="CONNECTED" status="ok" small/>
         {isRouterFreeze&&<div className="diagnosis-box" style={{backgroundColor:C.cyanDim,border:`1px solid ${C.cyan}30`,color:C.cyan,fontSize:11}}>
-          Router frozen but the twin is still alive. The Raspberry Pi has its own cellular connection, independent of the Stride Linx. We can still see everything and guide the operator.
+          Stride Linx frozen — telemetry VPN only. Vision/IT and Motion/OT networks unaffected. Pi reporting via independent cellular backhaul.
         </div>}
+        <div style={{borderTop:`1px solid ${C.border}`,paddingTop:8,marginTop:4}}>
+          <div style={{fontSize:10,color:C.muted,marginBottom:2,textTransform:"uppercase",letterSpacing:0.8}}>Power Distribution</div>
+          <Metric label="120V AC Plane (IT stack)" value="NOMINAL" status="ok" small/>
+          <Metric label="24V DC Plane (Rhino PSR → OT)" value="NOMINAL" status="ok" small/>
+          <Metric label="Generator/Inverter (Zone 2)" value="RUNNING" status="ok" small/>
+          <Metric label="Netgear Switch (Z1)" value="ALL PORTS UP" status="ok" small/>
+          <Metric label="TRENDnet PoE (Z3)" value="ONLINE" status="ok" small/>
+        </div>
         <div style={{borderTop:`1px solid ${C.border}`,paddingTop:8,marginTop:4}}>
           <Metric label="Latency (VPN)" value={isRouterFreeze?"—":j(34,8)} unit={isRouterFreeze?"":"ms"} status={isRouterFreeze?"error":"ok"} small/>
           <Metric label="Latency (Pi Cellular)" value={j(120,20)} unit="ms" status="ok" small/>
         </div>
       </Panel>
 
-      {/* NERVOUS SYSTEM — The Pi */}
-      <Panel title="Nervous System" icon="🧬" status="ok">
+      {/* NERVOUS SYSTEM */}
+      <Panel title="Nervous System" icon="🧬" status="ok" zone="Z1 CAB">
         <Metric label="Raspberry Pi" value="ONLINE" status="ok"/>
         <Metric label="Cellular Backhaul" value="CONNECTED" status="ok"/>
-        <Metric label="Location" value="IT Rack (Cab)" status="ok"/>
+        <Metric label="Location" value="IT Rack, next to Netgear" status="ok"/>
         <div style={{borderTop:`1px solid ${C.border}`,paddingTop:8,marginTop:4}}>
-          <div style={{fontSize:10,color:C.muted,marginBottom:6,textTransform:"uppercase",letterSpacing:0.8}}>Monitoring</div>
+          <div style={{fontSize:10,color:C.muted,marginBottom:6,textTransform:"uppercase",letterSpacing:0.8}}>Monitoring Status</div>
           <div style={{display:"flex",flexDirection:"column",gap:4}}>
             {[
-              {label:"PLC Signal Monitoring",val:"Active",ok:true},
-              {label:"Apera Server Health",val:isAperaCrash?"FAULT DETECTED":"Healthy",ok:!isAperaCrash},
-              {label:"Schunk/Stäubli Faults",val:isServoFault?"FAULT DETECTED":"None",ok:!isServoFault},
-              {label:"Camera Feeds",val:"Streaming",ok:true},
-              {label:"Network Devices",val:isRouterFreeze?"Router DOWN":"All Up",ok:!isRouterFreeze},
+              {label:"FX5UC PLC Signals (OT)",val:"Active",ok:true},
+              {label:"Click PLC Aux/Safety (OT)",val:"Active",ok:true},
+              {label:"Apera Dell Servers (IT)",val:isAperaCrash?"FAULT":"Healthy",ok:!isAperaCrash},
+              {label:"Schunk/Stäubli via EtherCAT",val:isServoFault?"FAULT":"Healthy",ok:!isServoFault},
+              {label:"Camera Feeds (PoE)",val:"Streaming",ok:true},
+              {label:"Network Devices (IT)",val:isRouterFreeze?"Stride Linx DOWN":"All Up",ok:!isRouterFreeze},
+              {label:"24V DC Bus (OT)",val:"Nominal",ok:true},
+              {label:"120V AC Plane (IT)",val:"Nominal",ok:true},
             ].map((r,i)=><div key={i} style={{
               display:"flex",alignItems:"center",justifyContent:"space-between",
-              padding:"5px 10px",borderRadius:6,
+              padding:"4px 10px",borderRadius:6,
               backgroundColor:r.ok?C.bg:C.redDim,border:`1px solid ${r.ok?C.border:C.red+"40"}`,
             }}>
-              <span style={{fontSize:11,color:r.ok?C.dim:C.red}}>{r.label}</span>
-              <span className="mono" style={{fontSize:10,fontWeight:700,color:r.ok?C.green:C.red}}>{r.val}</span>
+              <span style={{fontSize:10,color:r.ok?C.dim:C.red}}>{r.label}</span>
+              <span className="mono" style={{fontSize:9,fontWeight:700,color:r.ok?C.green:C.red}}>{r.val}</span>
             </div>)}
           </div>
-        </div>
-        <div style={{fontSize:10,color:C.muted,lineHeight:1.5,fontStyle:"italic",padding:"2px 0"}}>
-          A Raspberry Pi with its own cellular. Sits on the network and listens. If it dies, the truck keeps running — we just lose visibility.
         </div>
       </Panel>
     </div>
 
-    {/* UMBILICAL */}
+    {/* I/O SIGNAL PATH */}
+    <div style={{marginTop:14}}>
+      <Panel title="I/O Signal Path — Physical to Logical Bridge" icon="⚡" status={isWireFault?"error":"ok"}>
+        <div style={{fontSize:10,color:C.muted,marginBottom:6,textTransform:"uppercase",letterSpacing:0.8}}>Signal Route: Fuji Button → M12 → Murrelektronik → 25-Pin Trunk → ZipLink → PLC</div>
+        <div style={{display:"flex",alignItems:"center",gap:4,flexWrap:"wrap",padding:"8px 0"}}>
+          {[
+            {label:"Fuji Button",detail:"Saginaw enclosure (Z3)",zone:"Z3",status:isWireFault?"ok":"ok"},
+            {label:"M12 Cables",detail:"to Murrelektronik",zone:"Z3",status:isWireFault?"ok":"ok"},
+            {label:"Murrelektronik Bulkhead",detail:"Signal consolidation",zone:"Z3→",status:isWireFault?"ok":"ok"},
+            {label:"25-Pin Trunk Cable",detail:"Passenger side run",zone:"Z3→Z1",status:isWireFault?"fault":"ok"},
+            {label:"ZipLink Breakout",detail:"Wire to PLC input",zone:"Z1",status:isWireFault?"fault":"ok"},
+            {label:"FX5UC PLC Terminal",detail:"di/do variable set",zone:"Z1",status:isWireFault?"fault":"ok"},
+          ].map((step,i,arr)=><React.Fragment key={i}>
+            <div style={{
+              padding:"8px 12px",borderRadius:6,flex:"1 1 auto",minWidth:140,
+              backgroundColor:step.status==="fault"?C.redDim:C.bg,
+              border:`1px solid ${step.status==="fault"?C.red+"40":C.border}`,
+            }}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <span style={{fontSize:11,fontWeight:600,color:step.status==="fault"?C.red:C.text}}>{step.label}</span>
+                <span style={{fontSize:9,color:C.muted}}>{step.zone}</span>
+              </div>
+              <div style={{fontSize:10,color:step.status==="fault"?C.red:C.muted,marginTop:2}}>{step.detail}</div>
+              {step.status==="fault"&&<div style={{fontSize:9,color:C.red,fontWeight:700,marginTop:2,animation:"blink 1s step-end infinite"}}>FAULT</div>}
+            </div>
+            {i<arr.length-1&&<span className="signal-arrow">→</span>}
+          </React.Fragment>)}
+        </div>
+        <div style={{fontSize:10,color:C.muted,marginTop:4}}>
+          <span style={{fontWeight:600}}>Variable convention:</span>
+          <span className="mono" style={{marginLeft:8,color:C.dim}}>di</span><span style={{color:C.muted}}> = digital input</span>
+          <span className="mono" style={{marginLeft:12,color:C.dim}}>do</span><span style={{color:C.muted}}> = digital output</span>
+          <span style={{marginLeft:12,color:C.muted}}>e.g.</span>
+          <span className="mono" style={{marginLeft:4,color:C.accent}}>diServo["Enable"]</span>
+          <span className="mono" style={{marginLeft:8,color:C.accent}}>doBelt["FWD"]</span>
+          <span className="mono" style={{marginLeft:8,color:C.accent}}>doGripper_EGM["MAG"]</span>
+          <span className="mono" style={{marginLeft:8,color:C.accent}}>doSafteyStop</span>
+        </div>
+      </Panel>
+    </div>
+
+    {/* 25-PIN UMBILICAL */}
     <div style={{marginTop:14}}>
       <Panel title="25-Pin Umbilical Health" icon="🔌" status={isWireFault?"error":"ok"}>
         <div style={{display:"flex",gap:20,alignItems:"flex-start",flexWrap:"wrap"}}>
           <div style={{flex:1,minWidth:240}}>
-            <div style={{fontSize:11,color:C.dim,marginBottom:6}}>Cab (ZipLink) → Passenger Side → Rear (Bulkhead)</div>
+            <div style={{fontSize:11,color:C.dim,marginBottom:6}}>Murrelektronik Bulkhead (Z3) → 25-Pin Trunk (Passenger Side) → ZipLink Breakout (Z1 Cab)</div>
             <div style={{display:"grid",gridTemplateColumns:"repeat(13,1fr)",gap:3}}>
               {Array.from({length:25},(_,i)=>{
                 const n=i+1;
@@ -502,8 +590,7 @@ function App() {
                   border:`1px solid ${faulted?C.red+"60":C.border}`,
                   animation:faulted?"blink 1s step-end infinite":"none",
                 }}>
-                  <div className="mono" style={{fontSize:12,fontWeight:700,
-                    color:faulted?C.red:C.green}}>{n}</div>
+                  <div className="mono" style={{fontSize:12,fontWeight:700,color:faulted?C.red:C.green}}>{n}</div>
                   {faulted&&<div style={{fontSize:7,color:C.red,fontWeight:700}}>OPEN</div>}
                 </div>;
               })}
@@ -512,9 +599,8 @@ function App() {
               <span style={{fontSize:10,color:C.muted}}>
                 {isWireFault?"24/25 healthy — 1 open circuit":"25/25 healthy"}
               </span>
-              <span style={{fontSize:10,fontWeight:700,
-                color:isWireFault?C.red:C.green}}>
-                {isWireFault?"PIN 14 — OPEN CIRCUIT":"ALL CLEAR"}
+              <span style={{fontSize:10,fontWeight:700,color:isWireFault?C.red:C.green}}>
+                {isWireFault?"PIN 14 — OPEN CIRCUIT (doConveyor[\"Enable\"])":"ALL CLEAR"}
               </span>
             </div>
           </div>
@@ -531,16 +617,16 @@ function App() {
         </div>
         <button className="cmd-btn" onClick={()=>setCmdLog([])} style={{padding:"4px 10px",fontSize:10}}>Clear</button>
       </div>
-      <div style={{maxHeight:200,overflowY:"auto",display:"flex",flexDirection:"column",gap:3}}>
-        {cmdLog.length===0&&<div style={{fontSize:11,color:C.muted,fontStyle:"italic",padding:"8px 0"}}>All systems nominal. Select a failure scenario above to see what the nervous system detects and how the digital twin guides the diagnosis.</div>}
+      <div style={{maxHeight:240,overflowY:"auto",display:"flex",flexDirection:"column",gap:3}}>
+        {cmdLog.length===0&&<div style={{fontSize:11,color:C.muted,fontStyle:"italic",padding:"8px 0"}}>No events recorded.</div>}
         {cmdLog.map((entry,i)=>{
-          const color = entry.type==="fault"?C.red:entry.type==="diagnosis"?C.cyan:entry.type==="warn"?C.amber:entry.type==="info"?C.accent:C.dim;
-          const icon = entry.type==="fault"?"⚠":entry.type==="diagnosis"?"🔍":entry.type==="warn"?"📉":entry.type==="info"?"ℹ":"•";
+          const color = entry.type==="fault"?C.red:entry.type==="diagnosis"?C.cyan:entry.type==="warn"?C.amber:entry.type==="trace"?C.purple:entry.type==="info"?C.accent:C.dim;
+          const icon = entry.type==="fault"?"⚠":entry.type==="diagnosis"?"🔍":entry.type==="warn"?"📉":entry.type==="trace"?"⚡":entry.type==="info"?"ℹ":"•";
           return <div key={i} style={{display:"flex",gap:10,padding:"5px 8px",borderRadius:4,
             backgroundColor:i===0?`${color}10`:"transparent",animation:i===0?"slideIn 0.3s ease":"none"}}>
             <span style={{fontSize:11,flexShrink:0}}>{icon}</span>
             <span className="mono" style={{fontSize:10,color:C.muted,whiteSpace:"nowrap",flexShrink:0}}>{entry.time}</span>
-            <span className="mono" style={{fontSize:11,color:i<2?color:C.dim}}>{entry.cmd}</span>
+            <span className="mono" style={{fontSize:11,color:i<3?color:C.dim}}>{entry.cmd}</span>
           </div>;
         })}
       </div>
@@ -553,25 +639,10 @@ function App() {
       <div style={{display:"flex",gap:16}}>
         <span style={{fontSize:11,color:C.green}}>🧬 Nervous System: Online</span>
         <span style={{fontSize:11,color:C.green}}>📡 Cellular Backhaul: Connected</span>
-        <span style={{fontSize:11,color:C.muted}}>🔧 Prototype — Bench Demo</span>
+        <span style={{fontSize:11,color:C.muted}}>v1.0</span>
       </div>
     </div>
 
-    {/* The Ask */}
-    {isHealthy&&<div style={{
-      marginTop:14,padding:"20px 24px",backgroundColor:C.panel,borderRadius:12,border:`1px solid ${C.accent}30`,borderTop:`2px solid ${C.accent}40`,
-    }}>
-      <div style={{fontSize:14,fontWeight:700,color:C.text,marginBottom:8}}>The Ask</div>
-      <div style={{fontSize:12,color:C.dim,lineHeight:1.7}}>
-        Two weeks of bench time and $250 in parts. A Raspberry Pi mounted in the cab's IT rack with its own cellular connection. It reads signals from the PLC, monitors the Apera servers, watches for Stäubli fault codes through the Schunk controller, and tracks every camera feed and network device. It doesn't modify anything. It sits on the network and listens.
-      </div>
-      <div style={{fontSize:12,color:C.dim,lineHeight:1.7,marginTop:8}}>
-        If it works, the next time RAIV #3 goes down — nobody drives. We check the twin, call the operator, and tell them exactly where it hurts.
-      </div>
-      <div style={{fontSize:13,fontWeight:700,color:C.accent,marginTop:12,fontStyle:"italic"}}>
-        The Stäubli can move. The Apera can see. The PLC can route. But when something breaks, the truck goes silent. Build the nervous system. Give it a voice.
-      </div>
-    </div>}
   </div>;
 }
 
