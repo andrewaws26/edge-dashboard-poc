@@ -375,39 +375,9 @@ function App() {
       </div>
     </div>
 
-    {/* The Problem — healthy state only */}
-    {isHealthy&&<div style={{
-      marginBottom:16,padding:"20px 24px",backgroundColor:C.panel,borderRadius:12,border:`1px solid ${C.border}`,
-      display:"flex",gap:24,alignItems:"center",flexWrap:"wrap",
-    }}>
-      <div style={{flex:1,minWidth:300}}>
-        <div style={{fontSize:14,fontWeight:700,color:C.text,marginBottom:6}}>The Truck Can't Tell Us Where It Hurts.</div>
-        <div style={{fontSize:12,color:C.dim,lineHeight:1.7}}>
-          Every time RAIV #3 goes down, somebody drives five hours. They find a loose pin, a frozen router, or a crashed server. They fix it in minutes. Then they drive five hours back. The operator was standing right next to the truck the whole time — they could have fixed it. But nobody could tell them what was wrong.
-        </div>
-        <div style={{fontSize:12,color:C.muted,marginTop:8,fontStyle:"italic"}}>
-          We're not driving because the fix is complicated. We're driving because the diagnosis is impossible from here.
-        </div>
-      </div>
-      <div style={{display:"flex",gap:16}}>
-        <div style={{textAlign:"center",padding:"12px 16px",borderRadius:8,backgroundColor:C.redDim,border:`1px solid ${C.red}30`,minWidth:100}}>
-          <div className="mono" style={{fontSize:28,fontWeight:800,color:C.red}}>10 hrs</div>
-          <div style={{fontSize:10,color:C.dim,marginTop:4}}>Round-trip to diagnose</div>
-        </div>
-        <div style={{textAlign:"center",padding:"12px 16px",borderRadius:8,backgroundColor:C.greenDim,border:`1px solid ${C.green}30`,minWidth:100}}>
-          <div className="mono" style={{fontSize:28,fontWeight:800,color:C.green}}>5 min</div>
-          <div style={{fontSize:10,color:C.dim,marginTop:4}}>Typical actual repair</div>
-        </div>
-        <div style={{textAlign:"center",padding:"12px 16px",borderRadius:8,backgroundColor:C.amberDim,border:`1px solid ${C.amber}30`,minWidth:100}}>
-          <div className="mono" style={{fontSize:28,fontWeight:800,color:C.amber}}>2 jobs</div>
-          <div style={{fontSize:10,color:C.dim,marginTop:4}}>Lost per trip</div>
-        </div>
-      </div>
-    </div>}
-
     {/* Scenario buttons */}
     <div style={{display:"flex",gap:6,marginBottom:16,flexWrap:"wrap",padding:"10px 14px",backgroundColor:C.panel,borderRadius:10,border:`1px solid ${C.border}`}}>
-      <span style={{fontSize:11,color:C.muted,alignSelf:"center",marginRight:6}}>SIMULATE FAILURE:</span>
+      <span style={{fontSize:11,color:C.muted,alignSelf:"center",marginRight:6}}>SCENARIO:</span>
       {[
         {id:"healthy",label:"All Healthy",e:"✅"},
         {id:"wire_fault",label:"Broken Wire (Pin 14)",e:"🔌"},
@@ -434,95 +404,6 @@ function App() {
       traceSteps={currentDiagnosis.traceSteps}
     />}
 
-    {/* ZONE ARCHITECTURE OVERVIEW */}
-    {isHealthy&&<div style={{marginBottom:14,padding:"16px 20px",backgroundColor:C.panel,borderRadius:12,border:`1px solid ${C.border}`}}>
-      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}>
-        <span style={{fontSize:14}}>🗺</span>
-        <span style={{fontSize:12,fontWeight:700,textTransform:"uppercase",letterSpacing:1,color:C.dim}}>Physical Zone Architecture</span>
-      </div>
-      <div style={{display:"grid",gridTemplateColumns:"1fr 0.6fr 1fr",gap:10}}>
-        {/* Zone 1 */}
-        <div style={{padding:"12px 16px",borderRadius:8,backgroundColor:C.bg,border:`1px solid ${C.accent}30`}}>
-          <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:8}}>
-            <span className="zone-label" style={{backgroundColor:C.accentDim,color:C.accent,border:`1px solid ${C.accent}30`}}>Zone 1: Front Cab</span>
-          </div>
-          <div style={{fontSize:11,color:C.dim,lineHeight:1.6}}>
-            <div style={{display:"flex",justifyContent:"space-between",padding:"2px 0"}}><span>Dell Apera Servers (x2)</span><DomainTag domain={IT}/></div>
-            <div style={{display:"flex",justifyContent:"space-between",padding:"2px 0"}}><span>FX5UC PLC (Primary)</span><DomainTag domain={OT}/></div>
-            <div style={{display:"flex",justifyContent:"space-between",padding:"2px 0"}}><span>Click PLC (Aux/Safety)</span><DomainTag domain={OT}/></div>
-            <div style={{display:"flex",justifyContent:"space-between",padding:"2px 0"}}><span>Netgear GbE Switch</span><DomainTag domain={IT}/></div>
-            <div style={{display:"flex",justifyContent:"space-between",padding:"2px 0"}}><span>Stride Linx VPN Router</span><DomainTag domain={IT}/></div>
-            <div style={{display:"flex",justifyContent:"space-between",padding:"2px 0"}}><span>Rhino PSR 24-480 (AC→24V)</span><DomainTag domain={OT}/></div>
-            <div style={{display:"flex",justifyContent:"space-between",padding:"2px 0"}}><span>ZipLink Breakout Boards</span><DomainTag domain={OT}/></div>
-          </div>
-        </div>
-        {/* Zone 2 */}
-        <div style={{padding:"12px 16px",borderRadius:8,backgroundColor:C.bg,border:`1px solid ${C.amber}30`}}>
-          <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:8}}>
-            <span className="zone-label" style={{backgroundColor:C.amberDim,color:C.amber,border:`1px solid ${C.amber}30`}}>Zone 2: Mid</span>
-          </div>
-          <div style={{fontSize:11,color:C.dim,lineHeight:1.6}}>
-            <div style={{padding:"2px 0"}}>Engine Generator</div>
-            <div style={{padding:"2px 0"}}>Battery Bank</div>
-            <div style={{padding:"2px 0"}}>3000W Inverter</div>
-            <div style={{padding:"4px 0",marginTop:4,fontSize:10,color:C.amber,fontWeight:600}}>120V AC → Zone 1</div>
-          </div>
-        </div>
-        {/* Zone 3 */}
-        <div style={{padding:"12px 16px",borderRadius:8,backgroundColor:C.bg,border:`1px solid ${C.purple}30`}}>
-          <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:8}}>
-            <span className="zone-label" style={{backgroundColor:C.purpleDim,color:C.purple,border:`1px solid ${C.purple}30`}}>Zone 3: Rear</span>
-          </div>
-          <div style={{fontSize:11,color:C.dim,lineHeight:1.6}}>
-            <div style={{display:"flex",justifyContent:"space-between",padding:"2px 0"}}><span>Robot Arm (Stäubli)</span><DomainTag domain={OT}/></div>
-            <div style={{display:"flex",justifyContent:"space-between",padding:"2px 0"}}><span>Conveyor Belt</span><DomainTag domain={OT}/></div>
-            <div style={{display:"flex",justifyContent:"space-between",padding:"2px 0"}}><span>Schunk UXB 24V Controller</span><DomainTag domain={OT}/></div>
-            <div style={{display:"flex",justifyContent:"space-between",padding:"2px 0"}}><span>TRENDnet PoE Switch</span><DomainTag domain={IT}/></div>
-            <div style={{display:"flex",justifyContent:"space-between",padding:"2px 0"}}><span>Saginaw Enclosures (HMI)</span><DomainTag domain={OT}/></div>
-            <div style={{display:"flex",justifyContent:"space-between",padding:"2px 0"}}><span>Fuji Push Buttons</span><DomainTag domain={OT}/></div>
-          </div>
-        </div>
-      </div>
-      <div style={{display:"flex",gap:12,marginTop:10,fontSize:10,color:C.muted,justifyContent:"center"}}>
-        <span><span style={{color:C.cyan}}>IT domain</span> = 120V AC plane (vision, networking)</span>
-        <span>|</span>
-        <span><span style={{color:C.orange}}>OT domain</span> = 24V DC plane (PLC, motion, sensors)</span>
-        <span>|</span>
-        <span>Power isolated to prevent motor noise from affecting compute</span>
-      </div>
-    </div>}
-
-    {/* NETWORK TOPOLOGY — healthy state */}
-    {isHealthy&&<div style={{marginBottom:14,padding:"16px 20px",backgroundColor:C.panel,borderRadius:12,border:`1px solid ${C.border}`}}>
-      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}>
-        <span style={{fontSize:14}}>🔗</span>
-        <span style={{fontSize:12,fontWeight:700,textTransform:"uppercase",letterSpacing:1,color:C.dim}}>Network & Communication Topology</span>
-      </div>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10}}>
-        <div style={{padding:"12px 16px",borderRadius:8,backgroundColor:C.bg,border:`1px solid ${C.cyan}30`}}>
-          <div style={{fontSize:11,fontWeight:700,color:C.cyan,marginBottom:6}}>Vision/IT Network <DomainTag domain={IT}/></div>
-          <div style={{fontSize:10,color:C.dim,lineHeight:1.6}}>
-            Ethernet/PoE — High-bandwidth, non-deterministic<br/>
-            Cameras → TRENDnet PoE (Zone 3) → Netgear GbE (Zone 1) → Dell Apera Servers
-          </div>
-        </div>
-        <div style={{padding:"12px 16px",borderRadius:8,backgroundColor:C.bg,border:`1px solid ${C.orange}30`}}>
-          <div style={{fontSize:11,fontWeight:700,color:C.orange,marginBottom:6}}>Motion/OT Network <DomainTag domain={OT}/></div>
-          <div style={{fontSize:10,color:C.dim,lineHeight:1.6}}>
-            EtherCAT — Hard real-time, deterministic<br/>
-            Dedicated line for robot arm kinematics and precise servo motion only
-          </div>
-        </div>
-        <div style={{padding:"12px 16px",borderRadius:8,backgroundColor:C.bg,border:`1px solid ${C.accent}30`}}>
-          <div style={{fontSize:11,fontWeight:700,color:C.accent,marginBottom:6}}>Telemetry Network</div>
-          <div style={{fontSize:10,color:C.dim,lineHeight:1.6}}>
-            VPN via Stride Linx (Zone 1)<br/>
-            Remote diagnostics, code deployment, system monitoring from Louisville
-          </div>
-        </div>
-      </div>
-    </div>}
-
     {/* Main system panels grid */}
     <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:14}}>
 
@@ -542,9 +423,6 @@ function App() {
               <div className="mono" style={{fontSize:13,fontWeight:700,color:isServoFault&&i===2?C.red:isServoFault?C.dim:C.text}}>{isServoFault&&i===2?"ERR":isServoFault?"—":v.toFixed(1)}</div>
             </div>)}
           </div>
-        </div>
-        <div style={{fontSize:10,color:C.muted,lineHeight:1.5,fontStyle:"italic"}}>
-          Real-time motion via dedicated EtherCAT bus through Schunk UXB controller. Fault codes readable from Louisville — no drive needed.
         </div>
       </Panel>
 
@@ -583,9 +461,6 @@ function App() {
             <IOPin pin="14" label='doConveyor["Enable"]' commanded={true} actual={!isWireFault}/>
             <IOPin pin="19" label='doSafteyStop' commanded={false} actual={false}/>
           </div>
-        </div>
-        <div style={{fontSize:10,color:C.muted,lineHeight:1.5,fontStyle:"italic"}}>
-          Central switchboard. Signals arrive from Fuji buttons via M12 → Murrelektronik → 25-pin trunk → ZipLink breakout → PLC terminal.
         </div>
       </Panel>
 
@@ -656,16 +531,13 @@ function App() {
             </div>)}
           </div>
         </div>
-        <div style={{fontSize:10,color:C.muted,lineHeight:1.5,fontStyle:"italic"}}>
-          Raspberry Pi with independent cellular. Sits on the network and listens. Doesn't touch PLC logic, Apera pipeline, or Stäubli motion commands. If it dies, the truck doesn't notice.
-        </div>
       </Panel>
     </div>
 
     {/* I/O SIGNAL PATH */}
     <div style={{marginTop:14}}>
       <Panel title="I/O Signal Path — Physical to Logical Bridge" icon="⚡" status={isWireFault?"error":"ok"}>
-        <div style={{fontSize:11,color:C.dim,marginBottom:8}}>How a physical button press becomes a boolean variable in the PLC:</div>
+        <div style={{fontSize:10,color:C.muted,marginBottom:6,textTransform:"uppercase",letterSpacing:0.8}}>Signal Route: Fuji Button → M12 → Murrelektronik → 25-Pin Trunk → ZipLink → PLC</div>
         <div style={{display:"flex",alignItems:"center",gap:4,flexWrap:"wrap",padding:"8px 0"}}>
           {[
             {label:"Fuji Button",detail:"Saginaw enclosure (Z3)",zone:"Z3",status:isWireFault?"ok":"ok"},
@@ -746,7 +618,7 @@ function App() {
         <button className="cmd-btn" onClick={()=>setCmdLog([])} style={{padding:"4px 10px",fontSize:10}}>Clear</button>
       </div>
       <div style={{maxHeight:240,overflowY:"auto",display:"flex",flexDirection:"column",gap:3}}>
-        {cmdLog.length===0&&<div style={{fontSize:11,color:C.muted,fontStyle:"italic",padding:"8px 0"}}>All systems nominal. Select a failure scenario above to watch the nervous system trace the fault from physical origin to software execution.</div>}
+        {cmdLog.length===0&&<div style={{fontSize:11,color:C.muted,fontStyle:"italic",padding:"8px 0"}}>No events recorded.</div>}
         {cmdLog.map((entry,i)=>{
           const color = entry.type==="fault"?C.red:entry.type==="diagnosis"?C.cyan:entry.type==="warn"?C.amber:entry.type==="trace"?C.purple:entry.type==="info"?C.accent:C.dim;
           const icon = entry.type==="fault"?"⚠":entry.type==="diagnosis"?"🔍":entry.type==="warn"?"📉":entry.type==="trace"?"⚡":entry.type==="info"?"ℹ":"•";
@@ -767,25 +639,10 @@ function App() {
       <div style={{display:"flex",gap:16}}>
         <span style={{fontSize:11,color:C.green}}>🧬 Nervous System: Online</span>
         <span style={{fontSize:11,color:C.green}}>📡 Cellular Backhaul: Connected</span>
-        <span style={{fontSize:11,color:C.muted}}>🔧 Prototype — Bench Demo</span>
+        <span style={{fontSize:11,color:C.muted}}>v1.0</span>
       </div>
     </div>
 
-    {/* The Ask */}
-    {isHealthy&&<div style={{
-      marginTop:14,padding:"20px 24px",backgroundColor:C.panel,borderRadius:12,border:`1px solid ${C.accent}30`,borderTop:`2px solid ${C.accent}40`,
-    }}>
-      <div style={{fontSize:14,fontWeight:700,color:C.text,marginBottom:8}}>The Ask</div>
-      <div style={{fontSize:12,color:C.dim,lineHeight:1.7}}>
-        Two weeks of bench time and $250 in parts. A Raspberry Pi mounted in the Zone 1 cab IT rack next to the Netgear switch, with its own cellular connection independent of the Stride Linx. It monitors both domains — reading digital I/O from the FX5UC PLC on the 24V DC OT plane, watching the Dell Apera servers on the 120V AC IT plane, tracking Stäubli fault codes through the Schunk UXB controller over EtherCAT, and monitoring every camera feed and network device across all three zones. It doesn't modify PLC logic, touch the Apera pipeline, or alter Stäubli motion commands. It sits on the network and listens.
-      </div>
-      <div style={{fontSize:12,color:C.dim,lineHeight:1.7,marginTop:8}}>
-        If it works, the next time RAIV #3 goes down — nobody drives. We check the twin, trace the fault from physical origin to software execution, call the operator, and tell them exactly where it hurts.
-      </div>
-      <div style={{fontSize:13,fontWeight:700,color:C.accent,marginTop:12,fontStyle:"italic"}}>
-        The Stäubli can move. The Apera can see. The PLC can route. But when something breaks, the truck goes silent. Build the nervous system. Give it a voice.
-      </div>
-    </div>}
   </div>;
 }
 
