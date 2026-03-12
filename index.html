@@ -3,15 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RAIV #3 — Digital Twin Dashboard — Self-Healing</title>
+<title>RAIV #3 — Digital Twin — Nervous System</title>
 <style>
   @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 0.3; } 50% { transform: scale(1.8); opacity: 0; } }
   @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
   @keyframes spin { to { transform: rotate(360deg); } }
   @keyframes slideIn { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
   @keyframes fadeGreen { 0% { background-color: #22c55e30; } 100% { background-color: transparent; } }
-  @keyframes healPulse { 0% { box-shadow: 0 0 0 0 #3b82f640; } 70% { box-shadow: 0 0 0 8px #3b82f600; } 100% { box-shadow: 0 0 0 0 #3b82f600; } }
-  @keyframes progressBar { from { width: 0%; } to { width: 100%; } }
+  @keyframes gentlePulse { 0%, 100% { box-shadow: 0 0 0 0 #3b82f640; } 70% { box-shadow: 0 0 0 6px #3b82f600; } }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { background: #0a0e17; color: #e2e8f0; font-family: 'Segoe UI', -apple-system, sans-serif; min-height: 100vh; }
   .mono { font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; }
@@ -27,13 +26,8 @@
   .cmd-btn-amber { border-color: #f59e0b40; background: #3d2e06; color: #f59e0b; }
   .cmd-btn-amber:hover { background: #f59e0b25; border-color: #f59e0b; }
   .toast { position: fixed; bottom: 24px; right: 24px; max-width: 440px; padding: 14px 20px; border-radius: 10px; font-size: 12px; font-weight: 600; z-index: 100; animation: slideIn 0.3s ease; display: flex; align-items: center; gap: 10px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); }
-  .control-section { border-top: 1px solid #1e293b; padding-top: 10px; margin-top: 6px; }
-  .control-label { font-size: 10px; color: #475569; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
-  .control-label::before { content: '⚙'; font-size: 10px; }
-  .heal-label::before { content: '🔄'; font-size: 10px; }
-  .heal-box { padding: 10px 12px; border-radius: 8px; border: 1px solid; font-size: 11px; line-height: 1.5; }
-  .timeline-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-  .timeline-line { width: 2px; height: 16px; margin-left: 4px; flex-shrink: 0; }
+  .diagnosis-box { border-radius: 8px; padding: 12px 14px; font-size: 12px; line-height: 1.6; }
+  .operator-action { border-radius: 8px; padding: 10px 14px; font-size: 12px; line-height: 1.5; display: flex; gap: 10px; align-items: flex-start; }
 </style>
 </head>
 <body>
@@ -57,24 +51,26 @@ const C = {
 
 // ---- SHARED COMPONENTS ----
 const Dot = ({status,size=8,pulse=false}) => {
-  const color = status==="ok"?C.green:status==="warn"?C.amber:status==="error"?C.red:status==="healing"?C.cyan:status==="degraded"?C.purple:C.dim;
+  const color = status==="ok"?C.green:status==="warn"?C.amber:status==="error"?C.red:status==="info"?C.cyan:C.dim;
   return <span style={{position:"relative",display:"inline-flex",alignItems:"center",justifyContent:"center",width:size+8,height:size+8}}>
-    {pulse&&(status==="ok"||status==="healing")&&<span style={{position:"absolute",width:size+6,height:size+6,borderRadius:"50%",backgroundColor:color,opacity:0.3,animation:"pulse 2s ease-in-out infinite"}}/>}
+    {pulse&&status==="ok"&&<span style={{position:"absolute",width:size+6,height:size+6,borderRadius:"50%",backgroundColor:color,opacity:0.3,animation:"pulse 2s ease-in-out infinite"}}/>}
     <span style={{width:size,height:size,borderRadius:"50%",backgroundColor:color,boxShadow:`0 0 ${size}px ${color}40`}}/>
   </span>;
 };
 
-const Panel = ({title,icon,status,children,span=1}) => {
-  const borderColor = status==="ok"?C.green+"40":status==="warn"?C.amber+"40":status==="error"?C.red+"60":status==="healing"?C.cyan+"60":status==="degraded"?C.purple+"60":C.border;
+const Panel = ({title,bodyPart,icon,status,children,span=1}) => {
+  const borderColor = status==="ok"?C.green+"40":status==="warn"?C.amber+"40":status==="error"?C.red+"60":status==="info"?C.cyan+"40":C.border;
   return <div style={{
     backgroundColor:C.panel,border:`1px solid ${C.border}`,borderRadius:12,padding:"16px 20px",
-    gridColumn:`span ${span}`,display:"flex",flexDirection:"column",gap:12,borderTop:`2px solid ${borderColor}`,
-    animation:status==="healing"?"healPulse 2s ease infinite":"none",
+    gridColumn:`span ${span}`,display:"flex",flexDirection:"column",gap:10,borderTop:`2px solid ${borderColor}`,
   }}>
     <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
       <div style={{display:"flex",alignItems:"center",gap:8}}>
         <span style={{fontSize:16}}>{icon}</span>
-        <span style={{fontSize:12,fontWeight:700,textTransform:"uppercase",letterSpacing:1.2,color:C.dim}}>{title}</span>
+        <div>
+          <span style={{fontSize:12,fontWeight:700,textTransform:"uppercase",letterSpacing:1.2,color:C.dim}}>{title}</span>
+          {bodyPart&&<span style={{fontSize:10,color:C.muted,marginLeft:8}}>The {bodyPart}</span>}
+        </div>
       </div>
       <Dot status={status} pulse/>
     </div>
@@ -86,24 +82,22 @@ const Metric = ({label,value,unit,status,small}) => <div style={{display:"flex",
   <span style={{fontSize:small?11:12,color:C.dim}}>{label}</span>
   <div style={{display:"flex",alignItems:"baseline",gap:4}}>
     <span className="mono" style={{fontSize:small?14:18,fontWeight:700,
-      color:status==="ok"?C.green:status==="warn"?C.amber:status==="error"?C.red:status==="healing"?C.cyan:status==="degraded"?C.purple:C.text
+      color:status==="ok"?C.green:status==="warn"?C.amber:status==="error"?C.red:status==="info"?C.cyan:C.text
     }}>{value}</span>
     {unit&&<span style={{fontSize:10,color:C.dim}}>{unit}</span>}
   </div>
 </div>;
 
-const IOPin = ({pin,label,commanded,actual,rerouted,degraded}) => {
-  const fault = commanded&&!actual&&!rerouted;
-  const bypassed = commanded&&!actual&&rerouted;
+const IOPin = ({pin,label,commanded,actual,fault}) => {
+  const hasFault = commanded&&!actual;
   return <div style={{display:"flex",alignItems:"center",gap:8,padding:"5px 10px",borderRadius:6,
-    backgroundColor:fault?C.redDim:bypassed?C.cyanDim:commanded&&actual?C.greenDim:"transparent",
-    border:`1px solid ${fault?C.red+"40":bypassed?C.cyan+"40":"transparent"}`}}>
+    backgroundColor:hasFault?C.redDim:commanded&&actual?C.greenDim:"transparent",
+    border:`1px solid ${hasFault?C.red+"40":"transparent"}`}}>
     <span className="mono" style={{fontSize:10,color:C.muted,width:32}}>P{pin}</span>
     <span style={{fontSize:11,color:C.dim,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{label}</span>
     <div style={{display:"flex",gap:4,alignItems:"center"}}>
-      {bypassed&&<span style={{fontSize:8,fontWeight:700,color:C.cyan,padding:"1px 4px",borderRadius:3,backgroundColor:C.cyanDim,border:`1px solid ${C.cyan}30`}}>REROUTED</span>}
-      {fault&&<span style={{fontSize:9,fontWeight:700,color:C.red,animation:"blink 1s step-end infinite"}}>FAULT</span>}
-      {!fault&&!bypassed&&<>
+      {hasFault&&<span style={{fontSize:9,fontWeight:700,color:C.red,animation:"blink 1s step-end infinite"}}>FAULT</span>}
+      {!hasFault&&<>
         <span style={{fontSize:9,color:C.muted}}>CMD</span>
         <span className="mono" style={{width:14,height:14,borderRadius:3,fontSize:9,fontWeight:700,display:"flex",alignItems:"center",justifyContent:"center",
           backgroundColor:commanded?C.green+"20":C.panel,color:commanded?C.green:C.muted,border:`1px solid ${commanded?C.green+"40":C.border}`}}>{commanded?"1":"0"}</span>
@@ -117,7 +111,7 @@ const IOPin = ({pin,label,commanded,actual,rerouted,degraded}) => {
 
 const Bar = ({value,max=100,label,unit="%",status}) => {
   const pct = Math.min((value/max)*100,100);
-  const color = status==="ok"?C.green:status==="warn"?C.amber:status==="error"?C.red:status==="healing"?C.cyan:status==="degraded"?C.purple:C.accent;
+  const color = status==="ok"?C.green:status==="warn"?C.amber:status==="error"?C.red:status==="info"?C.cyan:C.accent;
   return <div style={{display:"flex",flexDirection:"column",gap:4}}>
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline"}}>
       <span style={{fontSize:11,color:C.dim}}>{label}</span>
@@ -129,68 +123,58 @@ const Bar = ({value,max=100,label,unit="%",status}) => {
   </div>;
 };
 
-const Alert = ({alerts}) => {
-  if(!alerts.length) return null;
-  const hasError = alerts.some(a=>a.type==="error");
-  const bg = hasError?C.redDim:C.cyanDim;
-  const border = hasError?C.red:C.cyan;
-  const color = hasError?C.red:C.cyan;
-  const label = hasError?"Active Faults":"Self-Healing Active";
-  return <div style={{backgroundColor:bg,border:`1px solid ${border}40`,borderRadius:10,padding:"12px 16px",display:"flex",flexDirection:"column",gap:8}}>
-    <div style={{display:"flex",alignItems:"center",gap:8}}>
-      <span style={{fontSize:14}}>{hasError?"⚠":"🔄"}</span>
-      <span style={{fontSize:12,fontWeight:700,color:color,textTransform:"uppercase",letterSpacing:1}}>{label} — {alerts.length}</span>
-    </div>
-    {alerts.map((a,i)=><div key={i} style={{display:"flex",alignItems:"center",justifyContent:"space-between",backgroundColor:C.panel,borderRadius:6,padding:"8px 12px",
-      border:`1px solid ${a.type==="error"?C.red:a.type==="healing"?C.cyan:a.type==="degraded"?C.purple:C.amber}20`}}>
-      <div style={{flex:1}}>
-        <div style={{fontSize:12,fontWeight:600,color:C.text}}>{a.title}</div>
-        <div style={{fontSize:11,color:C.dim,marginTop:2}}>{a.detail}</div>
-      </div>
-      <div style={{fontSize:10,color:a.type==="healing"?C.cyan:a.type==="degraded"?C.purple:C.muted,whiteSpace:"nowrap",marginLeft:12,fontWeight:a.type!=="error"?700:400}}>{a.time}</div>
-    </div>)}
-  </div>;
-};
-
 const Toast = ({message,type,visible}) => {
   if(!visible) return null;
-  const bg = type==="success"?C.greenDim:type==="warning"?C.amberDim:type==="healing"?C.cyanDim:C.accentDim;
-  const borderC = type==="success"?C.green:type==="warning"?C.amber:type==="healing"?C.cyan:C.accent;
-  const color = type==="success"?C.green:type==="warning"?C.amber:type==="healing"?C.cyan:C.accent;
-  const icon = type==="success"?"✓":type==="warning"?"⚡":type==="healing"?"🔄":"↑";
+  const bg = type==="success"?C.greenDim:type==="warning"?C.amberDim:type==="info"?C.cyanDim:type==="error"?C.redDim:C.accentDim;
+  const borderC = type==="success"?C.green:type==="warning"?C.amber:type==="info"?C.cyan:type==="error"?C.red:C.accent;
+  const color = type==="success"?C.green:type==="warning"?C.amber:type==="info"?C.cyan:type==="error"?C.red:C.accent;
+  const icon = type==="success"?"✓":type==="warning"?"⚠":type==="info"?"ℹ":type==="error"?"✗":"↑";
   return <div className="toast" style={{backgroundColor:bg,border:`1px solid ${borderC}40`,color}}>{icon} {message}</div>;
 };
 
-// Healing timeline component
-const HealTimeline = ({steps}) => <div style={{display:"flex",flexDirection:"column",gap:0}}>
-  {steps.map((s,i)=><React.Fragment key={i}>
-    <div style={{display:"flex",alignItems:"center",gap:10}}>
-      <div className="timeline-dot" style={{backgroundColor:s.done?s.active?C.cyan:C.green:C.border,boxShadow:s.active?`0 0 8px ${C.cyan}60`:"none"}}/>
-      <div style={{flex:1}}>
-        <span style={{fontSize:11,color:s.done?s.active?C.cyan:C.green:C.muted,fontWeight:s.active?700:400}}>{s.label}</span>
-        {s.detail&&<span style={{fontSize:10,color:C.muted,marginLeft:6}}>{s.detail}</span>}
+// Diagnosis panel — what the twin sees + what the operator does
+const DiagnosisPanel = ({diagnosis, operatorAction, remoteFix}) => {
+  if(!diagnosis) return null;
+  return <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:16,animation:"slideIn 0.3s ease"}}>
+    <div style={{padding:"16px 20px",backgroundColor:C.panel,borderRadius:12,border:`1px solid ${C.red}30`,borderTop:`2px solid ${C.red}60`}}>
+      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
+        <span style={{fontSize:14}}>🔍</span>
+        <span style={{fontSize:12,fontWeight:700,textTransform:"uppercase",letterSpacing:1,color:C.red}}>What the Twin Shows Us</span>
       </div>
-      <span className="mono" style={{fontSize:10,color:s.done?C.dim:C.muted}}>{s.time}</span>
+      <div className="diagnosis-box" style={{backgroundColor:C.redDim,border:`1px solid ${C.red}30`,color:C.text}}>
+        <span className="mono" style={{color:C.red,fontWeight:700}}>{diagnosis}</span>
+      </div>
     </div>
-    {i<steps.length-1&&<div className="timeline-line" style={{backgroundColor:s.done?C.green+"60":C.border}}/>}
-  </React.Fragment>)}
-</div>;
+    <div style={{display:"grid",gridTemplateColumns:remoteFix?"1fr 1fr":"1fr",gap:10}}>
+      <div style={{padding:"16px 20px",backgroundColor:C.panel,borderRadius:12,border:`1px solid ${C.green}30`,borderTop:`2px solid ${C.green}60`}}>
+        <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
+          <span style={{fontSize:14}}>📞</span>
+          <span style={{fontSize:12,fontWeight:700,textTransform:"uppercase",letterSpacing:1,color:C.green}}>What the Operator Does</span>
+        </div>
+        <div className="operator-action" style={{backgroundColor:C.greenDim,border:`1px solid ${C.green}30`,color:C.green}}>
+          <span style={{fontSize:16,flexShrink:0}}>👷</span>
+          <span>{operatorAction}</span>
+        </div>
+      </div>
+      {remoteFix&&<div style={{padding:"16px 20px",backgroundColor:C.panel,borderRadius:12,border:`1px solid ${C.cyan}30`,borderTop:`2px solid ${C.cyan}60`}}>
+        <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
+          <span style={{fontSize:14}}>💻</span>
+          <span style={{fontSize:12,fontWeight:700,textTransform:"uppercase",letterSpacing:1,color:C.cyan}}>What We Do from Louisville</span>
+        </div>
+        <div className="operator-action" style={{backgroundColor:C.cyanDim,border:`1px solid ${C.cyan}30`,color:C.cyan}}>
+          <span style={{fontSize:16,flexShrink:0}}>🖥</span>
+          <span>{remoteFix}</span>
+        </div>
+      </div>}
+    </div>
+  </div>;
+};
 
 
 // =================== MAIN APP ===================
 function App() {
   const [tick,setTick] = useState(0);
   const [scenario,setScenario] = useState("healthy");
-
-  // Healing states
-  const [healPhase,setHealPhase] = useState("idle"); // idle, detecting, rerouting, rerouted, degraded, predicted
-  const [routerResetting,setRouterResetting] = useState(false);
-  const [servoClearing,setServoClearing] = useState(false);
-  const [aperaRestarting,setAperaRestarting] = useState(false);
-
-  // Remote control states
-  const [beltSetpoint,setBeltSetpoint] = useState(92);
-  const [aperaExposure,setAperaExposure] = useState(75);
 
   // Toast + log
   const [toast,setToast] = useState({message:"",type:"success",visible:false});
@@ -200,136 +184,98 @@ function App() {
   const showToast = (message,type="success") => {
     if(toastTimer.current) clearTimeout(toastTimer.current);
     setToast({message,type,visible:true});
-    toastTimer.current = setTimeout(()=>setToast(t=>({...t,visible:false})),4000);
+    toastTimer.current = setTimeout(()=>setToast(t=>({...t,visible:false})),5000);
   };
   const addLog = (cmd,type) => {
     const time = new Date().toLocaleTimeString();
-    setCmdLog(prev => [{time,cmd,type:type||"cmd"},...prev].slice(0,12));
+    setCmdLog(prev => [{time,cmd,type:type||"info"},...prev].slice(0,15));
   };
 
   useEffect(()=>{const id=setInterval(()=>setTick(t=>t+1),1500);return()=>clearInterval(id);},[]);
   const j = useCallback((b,r)=>+(b+(Math.random()-0.5)*r).toFixed(1),[]);
 
-  // ---- SCENARIO: Auto-heal wire fault ----
+  // Scenario effects
   useEffect(()=>{
-    if(scenario==="wire_auto"){
-      setHealPhase("detecting");
-      addLog("FAULT DETECTED → Pin 14 open circuit. Belt FWD commanded HIGH, no motion.","fault");
-      showToast("Fault detected — Pin 14 open circuit. Auto-healing initiated...","healing");
-      const t1 = setTimeout(()=>{
-        setHealPhase("rerouting");
-        addLog("AUTO-HEAL → Switching Belt FWD signal to Click PLC backup path (driver-side routing)","heal");
-        showToast("Rerouting belt signal through Click PLC backup...","healing");
-      },2500);
-      const t2 = setTimeout(()=>{
-        setHealPhase("rerouted");
-        addLog("AUTO-HEAL → Click PLC output verified. Belt motion confirmed. Signal rerouted successfully.","heal");
-        addLog("NOTIFY → SMS sent to operator: \"Pin 14 failed. Belt running on backup. Tighten connector at passenger bulkhead when able.\"","notify");
-        showToast("Belt restored via backup path — operator notified to fix primary","success");
-      },5000);
-      const t3 = setTimeout(()=>{
-        setHealPhase("degraded");
-        addLog("STATUS → Truck operating in DEGRADED MODE. Primary belt circuit offline. Backup active. Full redundancy unavailable until physical repair.","status");
-      },6500);
-      return ()=>{clearTimeout(t1);clearTimeout(t2);clearTimeout(t3);};
+    setCmdLog([]);
+    if(scenario==="healthy") return;
+    if(scenario==="wire_fault"){
+      addLog("NERVOUS SYSTEM → Pin 14 open circuit detected. Belt FWD commanded ON — no motion sensed.","fault");
+      addLog("DIAGNOSIS → Fault isolated to Pin 14 in 25-pin umbilical. Passenger-side bulkhead connector.","diagnosis");
+      showToast("Twin detected: Pin 14 open circuit — belt not responding to PLC command","error");
     }
-    if(scenario==="wire_predict"){
-      setHealPhase("predicted");
-      addLog("PREDICTIVE → Pin 14 signal jitter detected. Quality degraded 38% over 7 days. Pattern matches pre-failure signature.","predict");
-      addLog("PREDICTIVE → Maintenance ticket auto-generated: \"Retighten Pin 14 connector at passenger bulkhead. Priority: schedule within 48 hours.\"","predict");
-      addLog("NOTIFY → SMS sent to operator: \"Pin 14 showing wear. Not critical yet. Tighten at next planned stop.\"","notify");
-      showToast("Predictive alert — Pin 14 degrading. Maintenance scheduled before failure.","healing");
-      return;
+    if(scenario==="apera_crash"){
+      addLog("NERVOUS SYSTEM → Apera Server 1 last inference was 12 minutes ago. Process not responding.","fault");
+      addLog("DIAGNOSIS → CPU temp normal. Network connected. Software process crashed — not hardware.","diagnosis");
+      showToast("Twin detected: Apera Server 1 process not responding — vision offline","error");
     }
-    if(scenario==="fuse_auto"){
-      setHealPhase("detecting");
-      addLog("FAULT DETECTED → Pin 11 (Servo Enable) — signal dropped to 0V. Suspected blown fuse on 24V branch.","fault");
-      showToast("Fault detected — Servo Enable signal lost. Checking backup path...","healing");
-      const t1 = setTimeout(()=>{
-        setHealPhase("rerouting");
-        addLog("AUTO-HEAL → Attempting reroute: Servo Enable through Click PLC output Y003.","heal");
-        showToast("Rerouting servo enable through Click PLC...","healing");
-      },2000);
-      const t2 = setTimeout(()=>{
-        setHealPhase("rerouted");
-        addLog("AUTO-HEAL → Click PLC Y003 verified. Stäubli servo enabled via backup. EtherCAT healthy.","heal");
-        addLog("NOTIFY → SMS sent: \"Servo enable fuse blown on primary circuit. Running on backup. Replace fuse at F7 when able.\"","notify");
-        showToast("Servo restored via backup — operator notified to replace fuse at F7","success");
-      },4500);
-      const t3 = setTimeout(()=>{setHealPhase("degraded");},6000);
-      return ()=>{clearTimeout(t1);clearTimeout(t2);clearTimeout(t3);};
+    if(scenario==="servo_fault"){
+      addLog("NERVOUS SYSTEM → Stäubli servo fault: Axis 3 following error. Arm stopped.","fault");
+      addLog("DIAGNOSIS → Schunk controller powered. EtherCAT link healthy. Recoverable software fault — not mechanical.","diagnosis");
+      showToast("Twin detected: Stäubli servo fault on Axis 3 — recoverable","error");
     }
-    if(scenario==="router_auto"){
-      setHealPhase("detecting");
-      addLog("FAULT DETECTED → Stride Linx unresponsive. 6 consecutive pings failed.","fault");
-      showToast("Router failure detected — auto-reset initiating...","healing");
-      const t1 = setTimeout(()=>{
-        setRouterResetting(true);
-        setHealPhase("rerouting");
-        addLog("AUTO-HEAL → Power cycling Stride Linx via GPIO relay (5s pulse).","heal");
-      },2000);
-      const t2 = setTimeout(()=>{
-        setRouterResetting(false);
-        setHealPhase("rerouted");
-        addLog("AUTO-HEAL → Stride Linx responding. VPN restored. Total downtime: 47 seconds.","heal");
-        showToast("Router auto-recovered — VPN restored in 47 seconds","success");
-      },5500);
-      return ()=>{clearTimeout(t1);clearTimeout(t2);};
+    if(scenario==="router_freeze"){
+      addLog("NERVOUS SYSTEM → Stride Linx unresponsive. 6 consecutive pings failed. VPN down.","fault");
+      addLog("NERVOUS SYSTEM → Twin still alive on independent cellular backhaul. Reporting through backup.","info");
+      showToast("Twin detected: Router frozen — reporting via independent cellular connection","error");
     }
-    setHealPhase("idle");
-    setRouterResetting(false);
-    setServoClearing(false);
-    setAperaRestarting(false);
+    if(scenario==="gripper_stuck"){
+      addLog("NERVOUS SYSTEM → Gripper command OFF but part still detected on sensor.","fault");
+      addLog("DIAGNOSIS → Schunk controller healthy. Magnetic gripper — likely residual magnetism, not software.","diagnosis");
+      showToast("Twin detected: Gripper won't release — residual magnetism suspected","warning");
+    }
+    if(scenario==="apera_drift"){
+      addLog("NERVOUS SYSTEM → Apera pick confidence dropped from 95% to 62% over last shift.","warn");
+      addLog("DIAGNOSIS → Cameras connected. Servers running. Camera 2 auto-adjusted exposure — ambient light change.","diagnosis");
+      showToast("Twin detected: Vision accuracy degrading — likely lighting change on site","warning");
+    }
   },[scenario]);
 
-  // Derived states
-  const isWire = scenario==="wire_auto"||scenario==="wire_predict";
-  const isFuse = scenario==="fuse_auto";
-  const isRouter = scenario==="router_auto";
-  const wireDetecting = scenario==="wire_auto"&&healPhase==="detecting";
-  const wireRerouting = scenario==="wire_auto"&&healPhase==="rerouting";
-  const wireRerouted = scenario==="wire_auto"&&(healPhase==="rerouted"||healPhase==="degraded");
-  const fuseDetecting = scenario==="fuse_auto"&&healPhase==="detecting";
-  const fuseRerouting = scenario==="fuse_auto"&&healPhase==="rerouting";
-  const fuseRerouted = scenario==="fuse_auto"&&(healPhase==="rerouted"||healPhase==="degraded");
-  const predicted = scenario==="wire_predict";
-  const routerHealing = scenario==="router_auto"&&(healPhase==="detecting"||healPhase==="rerouting");
-  const routerHealed = scenario==="router_auto"&&healPhase==="rerouted";
+  // Derived states per scenario
+  const isHealthy = scenario==="healthy";
+  const isWireFault = scenario==="wire_fault";
+  const isAperaCrash = scenario==="apera_crash";
+  const isServoFault = scenario==="servo_fault";
+  const isRouterFreeze = scenario==="router_freeze";
+  const isGripperStuck = scenario==="gripper_stuck";
+  const isAperaDrift = scenario==="apera_drift";
 
-  const beltDown = (wireDetecting||wireRerouting);
-  const beltBackup = wireRerouted;
-  const servoDown = (fuseDetecting||fuseRerouting);
-  const servoBackup = fuseRerouted;
+  const overallStatus = isHealthy?"ok":"error";
 
-  const overallStatus = healPhase==="idle"?"ok":healPhase==="detecting"||healPhase==="rerouting"?"healing":healPhase==="rerouted"||healPhase==="degraded"?"degraded":"ok";
+  // Diagnosis content per scenario
+  const diagnosisMap = {
+    wire_fault: {
+      diagnosis: "Belt Motor: commanded ON. Belt Motion: none. Fault isolated to Pin 14 — open circuit.",
+      operatorAction: "\"Tighten Pin 14 on the passenger-side bulkhead connector.\" Fixed in 5 minutes.",
+      remoteFix: null,
+    },
+    apera_crash: {
+      diagnosis: "Apera Server 1: last inference 12 minutes ago. CPU temp: normal. Network: connected. Status: process not responding.",
+      operatorAction: "\"Open the cab, press the power button on the left Dell server for 3 seconds.\" Back online in 2 minutes.",
+      remoteFix: "Restart the Apera service remotely through the twin's SSH tunnel. If remote restart fails, guide the operator.",
+    },
+    servo_fault: {
+      diagnosis: "Stäubli servo fault: Axis 3 — following error. EtherCAT link: healthy. Schunk controller: powered.",
+      operatorAction: "If mechanical: operator describes the issue or swaps the part with our guidance. We know exactly what's wrong.",
+      remoteFix: "Clear the recoverable fault remotely and re-home the arm. No drive required.",
+    },
+    router_freeze: {
+      diagnosis: "Stride Linx: unresponsive. Twin still alive on independent cellular backhaul. All other systems still reporting.",
+      operatorAction: "\"Flip the labeled switch on the IT rack to reboot the router.\" Back online in 90 seconds.",
+      remoteFix: "Press the reset button through the twin's cellular connection. Power-cycle the relay remotely.",
+    },
+    gripper_stuck: {
+      diagnosis: "Gripper command: OFF. Part still detected. Schunk controller healthy. Likely residual magnetism — not a software issue.",
+      operatorAction: "Clear the part manually, knowing the system is fine. No time wasted chasing a ghost.",
+      remoteFix: null,
+    },
+    apera_drift: {
+      diagnosis: "Apera pick confidence: 62% (normal: 95%). Camera 2 exposure: auto-adjusted to compensate for ambient light change.",
+      operatorAction: "Reposition a work light if the cameras show an obvious shadow or glare change.",
+      remoteFix: "Pull up the camera feed through the twin and adjust the vision parameters from our laptops. Truck never stops.",
+    },
+  };
 
-  // Alerts
-  const alerts = [];
-  if(wireDetecting) alerts.push({title:"Pin 14 — Open Circuit Detected",detail:"Belt FWD signal lost. Auto-healing in progress...",time:"DETECTING",type:"error"});
-  if(wireRerouting) alerts.push({title:"Pin 14 — Rerouting Through Click PLC",detail:"Switching belt signal to backup path via driver-side wiring.",time:"REROUTING",type:"healing"});
-  if(wireRerouted) alerts.push({title:"Pin 14 — Signal Rerouted ✓",detail:"Belt running on Click PLC backup path. Primary circuit needs physical repair at passenger bulkhead.",time:"DEGRADED MODE",type:"degraded"});
-  if(fuseDetecting) alerts.push({title:"Servo Enable — Signal Lost",detail:"Pin 11 dropped to 0V. Suspected blown fuse. Auto-healing in progress...",time:"DETECTING",type:"error"});
-  if(fuseRerouting) alerts.push({title:"Servo Enable — Rerouting Through Click PLC",detail:"Switching servo enable to backup output Y003.",time:"REROUTING",type:"healing"});
-  if(fuseRerouted) alerts.push({title:"Servo Enable — Rerouted ✓",detail:"Stäubli running on Click PLC backup. Replace fuse at F7 during next planned stop.",time:"DEGRADED MODE",type:"degraded"});
-  if(routerHealing) alerts.push({title:"Stride Linx — Auto-Resetting",detail:routerResetting?"Power cycling relay... waiting for reboot.":"Failure detected. Initiating auto-recovery.",time:"HEALING",type:"healing"});
-  if(routerHealed) alerts.push({title:"Stride Linx — Auto-Recovered ✓",detail:"Router back online. VPN restored. Total downtime: 47 seconds. No human intervention required.",time:"HEALED",type:"healing"});
-  if(predicted) alerts.push({title:"Pin 14 — Predictive Alert",detail:"Signal quality degraded 38% over 7 days. Matches pre-failure jitter pattern. Maintenance ticket auto-generated.",time:"PREDICT",type:"degraded"});
-
-  // Healing timeline steps
-  const wireHealSteps = [
-    {label:"Fault detected",detail:"Pin 14 open circuit",time:"T+0s",done:healPhase!=="idle",active:healPhase==="detecting"},
-    {label:"Backup path verified",detail:"Click PLC output available",time:"T+2s",done:healPhase==="rerouting"||healPhase==="rerouted"||healPhase==="degraded",active:healPhase==="rerouting"},
-    {label:"Signal rerouted",detail:"Belt FWD via Click PLC Y001",time:"T+5s",done:healPhase==="rerouted"||healPhase==="degraded",active:healPhase==="rerouted"},
-    {label:"Belt motion confirmed",detail:"Encoder pulses detected",time:"T+6s",done:healPhase==="degraded",active:false},
-    {label:"Operator notified",detail:"SMS with repair instructions",time:"T+6s",done:healPhase==="degraded",active:false},
-  ];
-  const fuseHealSteps = [
-    {label:"Fault detected",detail:"Servo Enable signal lost",time:"T+0s",done:healPhase!=="idle",active:healPhase==="detecting"},
-    {label:"Fuse failure confirmed",detail:"0V on primary, 24V on supply",time:"T+1s",done:healPhase==="rerouting"||healPhase==="rerouted"||healPhase==="degraded",active:false},
-    {label:"Backup path activated",detail:"Click PLC output Y003",time:"T+3s",done:healPhase==="rerouted"||healPhase==="degraded",active:healPhase==="rerouting"},
-    {label:"Stäubli servo re-enabled",detail:"EtherCAT link confirmed",time:"T+5s",done:healPhase==="degraded",active:false},
-    {label:"Operator notified",detail:"Replace fuse at F7",time:"T+5s",done:healPhase==="degraded",active:false},
-  ];
+  const currentDiagnosis = diagnosisMap[scenario] || null;
 
   return <div style={{padding:24,maxWidth:1440,margin:"0 auto"}}>
     <Toast message={toast.message} type={toast.type} visible={toast.visible}/>
@@ -337,289 +283,264 @@ function App() {
     {/* Header */}
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20,flexWrap:"wrap",gap:12}}>
       <div style={{display:"flex",alignItems:"center",gap:10}}>
-        <div style={{width:40,height:40,borderRadius:10,backgroundColor:C.accent+"15",border:`1px solid ${C.accent}30`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>🔧</div>
+        <div style={{width:40,height:40,borderRadius:10,backgroundColor:C.accent+"15",border:`1px solid ${C.accent}30`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>🚛</div>
         <div>
-          <h1 style={{fontSize:22,fontWeight:800,color:C.white,letterSpacing:-0.5}}>RAIV #3 <span style={{color:C.dim,fontWeight:400,fontSize:15}}>Digital Twin</span> <span style={{color:C.cyan,fontWeight:600,fontSize:13}}>SELF-HEALING</span></h1>
-          <div style={{fontSize:11,color:C.muted,marginTop:2}}>Louisville, KY → Field Site • Last update: {tick%2===0?"just now":"1s ago"} • <span style={{color:C.cyan}}>Auto-Recovery Enabled</span></div>
+          <h1 style={{fontSize:22,fontWeight:800,color:C.white,letterSpacing:-0.5}}>RAIV #3 <span style={{color:C.dim,fontWeight:400,fontSize:15}}>Digital Twin</span></h1>
+          <div style={{fontSize:11,color:C.muted,marginTop:2}}>Louisville, KY → Field Site &bull; Nervous System: <span style={{color:C.green}}>Online</span> &bull; Last update: {tick%2===0?"just now":"1s ago"}</div>
         </div>
       </div>
       <div style={{display:"flex",alignItems:"center",gap:8}}>
         <Dot status={overallStatus} size={10} pulse/>
         <span style={{fontSize:13,fontWeight:700,letterSpacing:0.5,
-          color:overallStatus==="ok"?C.green:overallStatus==="healing"?C.cyan:overallStatus==="degraded"?C.purple:C.red}}>
-          {overallStatus==="ok"?"ALL SYSTEMS NOMINAL":overallStatus==="healing"?"SELF-HEALING IN PROGRESS":overallStatus==="degraded"?"DEGRADED MODE — BACKUP ACTIVE":"FAULT DETECTED"}
+          color:overallStatus==="ok"?C.green:C.red}}>
+          {overallStatus==="ok"?"ALL SYSTEMS NOMINAL":"FAULT DETECTED — SEE DIAGNOSIS"}
         </span>
       </div>
     </div>
 
+    {/* The Problem — shown only in healthy state */}
+    {isHealthy&&<div style={{
+      marginBottom:16,padding:"20px 24px",backgroundColor:C.panel,borderRadius:12,border:`1px solid ${C.border}`,
+      display:"flex",gap:24,alignItems:"center",flexWrap:"wrap",
+    }}>
+      <div style={{flex:1,minWidth:300}}>
+        <div style={{fontSize:14,fontWeight:700,color:C.text,marginBottom:6}}>The Truck Can't Tell Us Where It Hurts.</div>
+        <div style={{fontSize:12,color:C.dim,lineHeight:1.7}}>
+          Every time RAIV #3 goes down, somebody drives five hours. They find a loose pin, a frozen router, or a crashed server. They fix it in minutes. Then they drive five hours back. The operator was standing right next to the truck the whole time — they could have fixed it. But nobody could tell them what was wrong.
+        </div>
+        <div style={{fontSize:12,color:C.muted,marginTop:8,fontStyle:"italic"}}>
+          We're not driving because the fix is complicated. We're driving because the diagnosis is impossible from here.
+        </div>
+      </div>
+      <div style={{display:"flex",gap:16}}>
+        <div style={{textAlign:"center",padding:"12px 16px",borderRadius:8,backgroundColor:C.redDim,border:`1px solid ${C.red}30`,minWidth:100}}>
+          <div className="mono" style={{fontSize:28,fontWeight:800,color:C.red}}>10 hrs</div>
+          <div style={{fontSize:10,color:C.dim,marginTop:4}}>Round-trip to diagnose</div>
+        </div>
+        <div style={{textAlign:"center",padding:"12px 16px",borderRadius:8,backgroundColor:C.greenDim,border:`1px solid ${C.green}30`,minWidth:100}}>
+          <div className="mono" style={{fontSize:28,fontWeight:800,color:C.green}}>5 min</div>
+          <div style={{fontSize:10,color:C.dim,marginTop:4}}>Typical actual repair</div>
+        </div>
+        <div style={{textAlign:"center",padding:"12px 16px",borderRadius:8,backgroundColor:C.amberDim,border:`1px solid ${C.amber}30`,minWidth:100}}>
+          <div className="mono" style={{fontSize:28,fontWeight:800,color:C.amber}}>2 jobs</div>
+          <div style={{fontSize:10,color:C.dim,marginTop:4}}>Lost per trip</div>
+        </div>
+      </div>
+    </div>}
+
     {/* Scenario buttons */}
     <div style={{display:"flex",gap:6,marginBottom:16,flexWrap:"wrap",padding:"10px 14px",backgroundColor:C.panel,borderRadius:10,border:`1px solid ${C.border}`}}>
-      <span style={{fontSize:11,color:C.muted,alignSelf:"center",marginRight:6}}>SIMULATE:</span>
+      <span style={{fontSize:11,color:C.muted,alignSelf:"center",marginRight:6}}>SIMULATE FAILURE:</span>
       {[
         {id:"healthy",label:"All Healthy",e:"✅"},
-        {id:"wire_auto",label:"Wire Fault → Auto-Reroute",e:"🔌"},
-        {id:"fuse_auto",label:"Blown Fuse → Auto-Reroute",e:"⚡"},
-        {id:"router_auto",label:"Router Freeze → Auto-Reset",e:"📡"},
-        {id:"wire_predict",label:"Wire Degrading → Predictive",e:"📉"},
+        {id:"wire_fault",label:"Broken Wire (Pin 14)",e:"🔌"},
+        {id:"apera_crash",label:"Apera Server Crash",e:"👁"},
+        {id:"servo_fault",label:"Stäubli Servo Fault",e:"🧠"},
+        {id:"router_freeze",label:"Router Freeze",e:"📡"},
+        {id:"gripper_stuck",label:"Gripper Won't Release",e:"🧲"},
+        {id:"apera_drift",label:"Vision Accuracy Drop",e:"📉"},
       ].map(s=>
-        <button key={s.id} onClick={()=>{setScenario("healthy");setCmdLog([]);setTimeout(()=>setScenario(s.id),100);}} style={{
-          padding:"7px 14px",borderRadius:6,border:`1px solid ${scenario===s.id?C.cyan:C.border}`,
-          backgroundColor:scenario===s.id?C.cyanDim:"transparent",color:scenario===s.id?C.cyan:C.dim,
+        <button key={s.id} onClick={()=>{setScenario("healthy");setTimeout(()=>setScenario(s.id),50);}} style={{
+          padding:"7px 14px",borderRadius:6,border:`1px solid ${scenario===s.id?(s.id==="healthy"?C.green:C.red):C.border}`,
+          backgroundColor:scenario===s.id?(s.id==="healthy"?C.greenDim:C.redDim):"transparent",
+          color:scenario===s.id?(s.id==="healthy"?C.green:C.red):C.dim,
           fontSize:11,fontWeight:600,cursor:"pointer",transition:"all 0.2s",
         }}>{s.e} {s.label}</button>
       )}
     </div>
 
-    {/* Alerts */}
-    <div style={{marginBottom:16}}><Alert alerts={alerts}/></div>
+    {/* Diagnosis Panel */}
+    {currentDiagnosis&&<DiagnosisPanel
+      diagnosis={currentDiagnosis.diagnosis}
+      operatorAction={currentDiagnosis.operatorAction}
+      remoteFix={currentDiagnosis.remoteFix}
+    />}
 
-    {/* HEALING TIMELINE - shown during auto-heal scenarios */}
-    {(scenario==="wire_auto"||scenario==="fuse_auto")&&healPhase!=="idle"&&<div style={{
-      marginBottom:16,padding:"16px 20px",backgroundColor:C.panel,borderRadius:12,
-      border:`1px solid ${healPhase==="degraded"?C.purple+"40":C.cyan+"40"}`,
-      borderTop:`2px solid ${healPhase==="degraded"?C.purple+"60":C.cyan+"60"}`,
-    }}>
-      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}>
-        <span style={{fontSize:14}}>{healPhase==="degraded"?"🛡":"🔄"}</span>
-        <span style={{fontSize:12,fontWeight:700,textTransform:"uppercase",letterSpacing:1,color:healPhase==="degraded"?C.purple:C.cyan}}>
-          {scenario==="wire_auto"?"Wire Fault Auto-Recovery Timeline":"Fuse Fault Auto-Recovery Timeline"}
-        </span>
-      </div>
-      <HealTimeline steps={scenario==="wire_auto"?wireHealSteps:fuseHealSteps}/>
-    </div>}
-
-    {/* Predictive panel */}
-    {predicted&&<div style={{
-      marginBottom:16,padding:"16px 20px",backgroundColor:C.panel,borderRadius:12,
-      border:`1px solid ${C.purple}40`,borderTop:`2px solid ${C.purple}60`,
-    }}>
-      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}>
-        <span style={{fontSize:14}}>🔮</span>
-        <span style={{fontSize:12,fontWeight:700,textTransform:"uppercase",letterSpacing:1,color:C.purple}}>Predictive Maintenance — Pin 14</span>
-      </div>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12}}>
-        <div style={{padding:"10px 14px",borderRadius:8,backgroundColor:C.bg,border:`1px solid ${C.border}`}}>
-          <div style={{fontSize:10,color:C.muted,marginBottom:4}}>Signal Quality (7-day trend)</div>
-          <div style={{display:"flex",alignItems:"baseline",gap:4}}>
-            <span className="mono" style={{fontSize:28,fontWeight:700,color:C.amber}}>62%</span>
-            <span style={{fontSize:11,color:C.red}}>▼ 38% from baseline</span>
-          </div>
-          <div style={{width:"100%",height:24,marginTop:8,borderRadius:4,backgroundColor:C.border,position:"relative",overflow:"hidden"}}>
-            {[100,95,88,82,76,70,62].map((v,i)=><div key={i} style={{
-              position:"absolute",bottom:0,left:`${i*14.28}%`,width:"12%",height:`${v*0.22}px`,
-              backgroundColor:v>80?C.green:v>65?C.amber:C.red,borderRadius:"2px 2px 0 0",opacity:0.8,
-            }}/>)}
-          </div>
-          <div style={{display:"flex",justifyContent:"space-between",marginTop:4}}>
-            <span style={{fontSize:9,color:C.muted}}>7 days ago</span>
-            <span style={{fontSize:9,color:C.muted}}>Today</span>
-          </div>
-        </div>
-        <div style={{padding:"10px 14px",borderRadius:8,backgroundColor:C.bg,border:`1px solid ${C.border}`}}>
-          <div style={{fontSize:10,color:C.muted,marginBottom:4}}>Jitter Frequency</div>
-          <div style={{display:"flex",alignItems:"baseline",gap:4}}>
-            <span className="mono" style={{fontSize:28,fontWeight:700,color:C.red}}>47</span>
-            <span style={{fontSize:11,color:C.dim}}>toggles/min</span>
-          </div>
-          <div style={{fontSize:11,color:C.amber,marginTop:8}}>⚠ Pattern matches pre-failure signature from Pin 8 incident (Jan 2026)</div>
-        </div>
-        <div style={{padding:"10px 14px",borderRadius:8,backgroundColor:C.bg,border:`1px solid ${C.border}`}}>
-          <div style={{fontSize:10,color:C.muted,marginBottom:4}}>Predicted Time to Failure</div>
-          <div style={{display:"flex",alignItems:"baseline",gap:4}}>
-            <span className="mono" style={{fontSize:28,fontWeight:700,color:C.amber}}>~3 days</span>
-          </div>
-          <div style={{fontSize:11,color:C.dim,marginTop:8}}>Maintenance ticket auto-generated. Operator notified to retighten at next planned stop.</div>
-          <button className="cmd-btn" style={{marginTop:8,width:"100%"}} onClick={()=>{addLog("PREDICTIVE → Escalated to urgent. Operator re-notified.","notify");showToast("Escalated to urgent priority");}}>⬆ Escalate to Urgent</button>
-        </div>
-      </div>
-    </div>}
-
-    {/* Grid */}
+    {/* Grid — the body of the truck */}
     <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:14}}>
 
-      {/* STÄUBLI */}
-      <Panel title="Stäubli Robot Arm — Brain" icon="🧠" status={servoDown?"error":servoBackup?"degraded":"ok"}>
+      {/* STÄUBLI — The Brain */}
+      <Panel title="Stäubli Robot Arm" bodyPart="Brain" icon="🧠" status={isServoFault?"error":"ok"}>
         <Metric label="EtherCAT Link" value="HEALTHY" status="ok"/>
         <Metric label="Schunk UXB Controller" value="POWERED" status="ok"/>
-        <Metric label="Servo Status" value={servoDown?"ENABLE LOST":servoBackup?"ENABLED (BACKUP)":"ALL NOMINAL"} status={servoDown?"error":servoBackup?"degraded":"ok"}/>
-        {servoBackup&&<div className="heal-box" style={{backgroundColor:C.purpleDim,borderColor:C.purple+"40",color:C.purple}}>
-          ✓ Servo running on Click PLC backup circuit. Primary fuse (F7) needs replacement. Truck is operational but without redundancy on this circuit.
+        <Metric label="Servo Status" value={isServoFault?"FAULT — AXIS 3":"ALL NOMINAL"} status={isServoFault?"error":"ok"}/>
+        {isServoFault&&<div className="diagnosis-box" style={{backgroundColor:C.redDim,border:`1px solid ${C.red}30`,color:C.amber,fontSize:11}}>
+          Axis 3: following error (recoverable). EtherCAT healthy, Schunk powered. This is a software fault, not mechanical failure.
         </div>}
         <div style={{borderTop:`1px solid ${C.border}`,paddingTop:8,marginTop:4}}>
           <div style={{fontSize:10,color:C.muted,marginBottom:6,textTransform:"uppercase",letterSpacing:0.8}}>Joint Positions (°)</div>
           <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:4}}>
             {[j(12.3,2),j(-45.7,3),j(88.1,2),j(0.5,1),j(-22.4,2),j(178.9,3)].map((v,i)=><div key={i} style={{textAlign:"center",padding:"4px 0",borderRadius:4,backgroundColor:C.bg,border:`1px solid ${C.border}`}}>
               <div style={{fontSize:9,color:C.muted}}>J{i+1}</div>
-              <div className="mono" style={{fontSize:13,fontWeight:700,color:servoDown?C.red:C.text}}>{servoDown?"—":v.toFixed(1)}</div>
+              <div className="mono" style={{fontSize:13,fontWeight:700,color:isServoFault&&i===2?C.red:isServoFault?C.dim:C.text}}>{isServoFault&&i===2?"ERR":isServoFault?"—":v.toFixed(1)}</div>
             </div>)}
           </div>
         </div>
+        <div style={{fontSize:10,color:C.muted,lineHeight:1.5,fontStyle:"italic",padding:"2px 0"}}>
+          Six axes of real-time motion via Schunk UXB over EtherCAT. When it faults, the error code is right here — no drive needed.
+        </div>
       </Panel>
 
-      {/* APERA */}
-      <Panel title="Apera AI Vision — Eyes" icon="👁" status="ok">
-        <Metric label="Server 1 (Front)" value="RUNNING" status="ok"/>
-        <Metric label="Server 2 (Rear)" value="RUNNING" status="ok"/>
-        <Metric label="Last Inference" value="< 1 sec" status="ok"/>
+      {/* APERA — The Eyes */}
+      <Panel title="Apera AI Vision" bodyPart="Eyes" icon="👁" status={isAperaCrash?"error":isAperaDrift?"warn":"ok"}>
+        <Metric label="Server 1 (Front Dell)" value={isAperaCrash?"NOT RESPONDING":"RUNNING"} status={isAperaCrash?"error":"ok"}/>
+        <Metric label="Server 2 (Rear Dell)" value="RUNNING" status="ok"/>
+        <Metric label="Last Inference" value={isAperaCrash?"12 min ago":"< 1 sec"} status={isAperaCrash?"error":"ok"}/>
+        {isAperaCrash&&<div className="diagnosis-box" style={{backgroundColor:C.redDim,border:`1px solid ${C.red}30`,color:C.amber,fontSize:11}}>
+          Server 1 process crashed. CPU temp normal, network connected. Software issue — power cycle or remote restart will fix it.
+        </div>}
         <div style={{borderTop:`1px solid ${C.border}`,paddingTop:8,marginTop:4}}>
-          <Bar label="Pick Confidence" value={j(96.4,2)} unit="%" status="ok"/>
+          <Bar label="Pick Confidence" value={isAperaCrash?0:isAperaDrift?j(62,3):j(96.4,2)} unit="%" status={isAperaCrash?"error":isAperaDrift?"warn":"ok"}/>
           <div style={{height:8}}/>
-          <Bar label="Vision FPS" value={j(28,3)} max={30} unit=" fps" status="ok"/>
+          <Bar label="Vision FPS" value={isAperaCrash?0:j(28,3)} max={30} unit=" fps" status={isAperaCrash?"error":"ok"}/>
         </div>
-        <div style={{height:70,borderRadius:6,backgroundColor:C.bg,border:`1px solid ${C.border}`,display:"flex",alignItems:"center",justifyContent:"center"}}>
-          <div style={{textAlign:"center"}}><div style={{fontSize:20}}>📷</div><span style={{fontSize:10,color:C.muted}}>Rear Camera — Live Feed</span></div>
+        {isAperaDrift&&<div className="diagnosis-box" style={{backgroundColor:C.amberDim,border:`1px solid ${C.amber}30`,color:C.amber,fontSize:11}}>
+          Confidence dropped from 95% → 62% this shift. Camera 2 exposure auto-adjusted — ambient lighting changed on site.
+        </div>}
+        <div style={{height:60,borderRadius:6,backgroundColor:C.bg,border:`1px solid ${C.border}`,display:"flex",alignItems:"center",justifyContent:"center"}}>
+          <div style={{textAlign:"center"}}><div style={{fontSize:18}}>📷</div><span style={{fontSize:10,color:C.muted}}>Camera Feed — Live</span></div>
+        </div>
+        <div style={{fontSize:10,color:C.muted,lineHeight:1.5,fontStyle:"italic",padding:"2px 0"}}>
+          The AI that makes the truck smart. Sees parts, decides what to pick. If the eyes go down, the brain has nothing to work with.
         </div>
       </Panel>
 
-      {/* PLC */}
-      <Panel title="FX5UC PLC — Spine" icon="🦴" status="ok">
+      {/* PLC — The Spine */}
+      <Panel title="Mitsubishi FX5UC PLC" bodyPart="Spine" icon="🦴" status="ok">
         <Metric label="PLC Status" value="RUN" status="ok"/>
         <Metric label="Scan Cycle" value={j(4.2,0.5)} unit="ms" status="ok"/>
         <div style={{borderTop:`1px solid ${C.border}`,paddingTop:8,marginTop:4}}>
           <div style={{fontSize:10,color:C.muted,marginBottom:6,textTransform:"uppercase",letterSpacing:0.8}}>Key Digital Outputs</div>
           <div style={{display:"flex",flexDirection:"column",gap:3}}>
-            <IOPin pin="03" label='doBelt[FWD]' commanded={true} actual={!beltDown} rerouted={beltBackup}/>
-            <IOPin pin="07" label='doGripper_EGM[MAG]' commanded={false} actual={false}/>
-            <IOPin pin="11" label='diServo[Enable]' commanded={true} actual={!servoDown} rerouted={servoBackup}/>
-            <IOPin pin="14" label='doConveyor[Enable]' commanded={true} actual={!beltDown} rerouted={beltBackup}/>
+            <IOPin pin="03" label='doBelt[FWD]' commanded={true} actual={!isWireFault}/>
+            <IOPin pin="07" label='doGripper_EGM[MAG]' commanded={isGripperStuck?false:false} actual={false}/>
+            <IOPin pin="11" label='diServo[Enable]' commanded={true} actual={true}/>
+            <IOPin pin="14" label='doConveyor[Enable]' commanded={true} actual={!isWireFault}/>
             <IOPin pin="19" label='doSafetyStop' commanded={false} actual={false}/>
           </div>
         </div>
+        <div style={{fontSize:10,color:C.muted,lineHeight:1.5,fontStyle:"italic",padding:"2px 0"}}>
+          The central switchboard. Every signal passes through here. The spine sends a signal — the nervous system can feel whether it arrived.
+        </div>
       </Panel>
 
-      {/* BELT */}
-      <Panel title="Belt & Gripper — Muscles" icon="💪" status={beltDown?"error":beltBackup?"degraded":"ok"}>
-        <Bar label="Belt Speed" value={beltDown?0:j(beltSetpoint,4)} unit="%" status={beltDown?"error":beltBackup?"degraded":"ok"}/>
-        <Metric label="Belt Current" value={beltDown?"0.0":j(4.2,0.5)} unit="A" status={beltDown?"error":"ok"}/>
-        <Metric label="Belt Direction" value={beltDown?"STOPPED":beltBackup?"FORWARD (BACKUP)":"FORWARD"} status={beltDown?"error":beltBackup?"degraded":"ok"}/>
-        <Metric label="Signal Path" value={beltBackup?"Click PLC Y001":"Primary (Pin 14)"} status={beltBackup?"degraded":"ok"}/>
-        {beltBackup&&<div className="heal-box" style={{backgroundColor:C.purpleDim,borderColor:C.purple+"40",color:C.purple}}>
-          ✓ Belt running on backup circuit through Click PLC. Primary wire (Pin 14) needs physical repair at passenger-side bulkhead.
-        </div>}
+      {/* BELT & GRIPPER — The Muscles */}
+      <Panel title="Belt & Gripper" bodyPart="Muscles" icon="💪" status={isWireFault?"error":isGripperStuck?"warn":"ok"}>
+        <Bar label="Belt Speed" value={isWireFault?0:j(92,4)} unit="%" status={isWireFault?"error":"ok"}/>
+        <Metric label="Belt Current" value={isWireFault?"0.0":j(4.2,0.5)} unit="A" status={isWireFault?"error":"ok"}/>
+        <Metric label="Belt Direction" value={isWireFault?"STOPPED":"FORWARD"} status={isWireFault?"error":"ok"}/>
         <div style={{borderTop:`1px solid ${C.border}`,paddingTop:8,marginTop:4}}>
-          <Metric label="Gripper State" value="RELEASED" status="ok"/>
+          <Metric label="Gripper State" value={isGripperStuck?"STUCK — PART DETECTED":"RELEASED"} status={isGripperStuck?"warn":"ok"}/>
+          <Metric label="Gripper Command" value={isGripperStuck?"OFF":"OFF"} status={isGripperStuck?"warn":"ok"}/>
           <Metric label="Gripper Cycles Today" value="847" unit=""/>
+        </div>
+        {isGripperStuck&&<div className="diagnosis-box" style={{backgroundColor:C.amberDim,border:`1px solid ${C.amber}30`,color:C.amber,fontSize:11}}>
+          Command says OFF but part sensor says present. Schunk controller healthy. Residual magnetism — not a software bug. Operator clears manually.
+        </div>}
+        <div style={{fontSize:10,color:C.muted,lineHeight:1.5,fontStyle:"italic",padding:"2px 0"}}>
+          The workhorses. Belt carries material; gripper picks and places. Dependent on clean signals through the 25-pin cable from the spine.
         </div>
       </Panel>
 
       {/* NETWORK */}
-      <Panel title="Network & Connectivity" icon="📡" status={routerHealing?"healing":routerHealed?"ok":"ok"}>
-        <Metric label="Stride Linx VPN" value={routerHealing?(routerResetting?"REBOOTING...":"UNREACHABLE"):routerHealed?"RESTORED (AUTO)":"CONNECTED"} status={routerHealing?"error":routerHealed?"ok":"ok"}/>
-        <Metric label="Cellular Backup" value="CONNECTED" status="ok"/>
+      <Panel title="Network & Connectivity" icon="📡" status={isRouterFreeze?"error":"ok"}>
+        <Metric label="Stride Linx VPN" value={isRouterFreeze?"UNRESPONSIVE":"CONNECTED"} status={isRouterFreeze?"error":"ok"}/>
+        <Metric label="Pi Cellular (Independent)" value="CONNECTED" status="ok"/>
         <Metric label="Netgear Switch" value="ALL PORTS UP" status="ok"/>
         <Metric label="TRENDnet PoE (Rear)" value="ONLINE" status="ok"/>
-        {routerHealed&&<div className="heal-box" style={{backgroundColor:C.greenDim,borderColor:C.green+"40",color:C.green}}>
-          ✓ Router auto-recovered at {new Date().toLocaleTimeString()}. No human intervention required. Downtime: 47 seconds.
+        {isRouterFreeze&&<div className="diagnosis-box" style={{backgroundColor:C.cyanDim,border:`1px solid ${C.cyan}30`,color:C.cyan,fontSize:11}}>
+          Router frozen but the twin is still alive. The Raspberry Pi has its own cellular connection, independent of the Stride Linx. We can still see everything and guide the operator.
         </div>}
         <div style={{borderTop:`1px solid ${C.border}`,paddingTop:8,marginTop:4}}>
-          <Metric label="Latency (Primary)" value={routerHealing?"—":j(34,8)} unit={routerHealing?"":"ms"} status={routerHealing?"error":"ok"} small/>
-          <Metric label="Latency (Cellular)" value={j(120,20)} unit="ms" status="ok" small/>
-          <Metric label="Auto-Recoveries (30d)" value={routerHealed?"4":"3"} unit="" small/>
+          <Metric label="Latency (VPN)" value={isRouterFreeze?"—":j(34,8)} unit={isRouterFreeze?"":"ms"} status={isRouterFreeze?"error":"ok"} small/>
+          <Metric label="Latency (Pi Cellular)" value={j(120,20)} unit="ms" status="ok" small/>
         </div>
       </Panel>
 
-      {/* CLICK PLC - BACKUP SYSTEM */}
-      <Panel title="Click PLC — Backup Nervous System" icon="🛡" status={beltBackup||servoBackup?"degraded":"ok"}>
-        <Metric label="Click PLC Status" value="RUN" status="ok"/>
-        <Metric label="Modbus TCP" value="CONNECTED" status="ok"/>
+      {/* NERVOUS SYSTEM — The Pi */}
+      <Panel title="Nervous System" icon="🧬" status="ok">
+        <Metric label="Raspberry Pi" value="ONLINE" status="ok"/>
+        <Metric label="Cellular Backhaul" value="CONNECTED" status="ok"/>
+        <Metric label="Location" value="IT Rack (Cab)" status="ok"/>
         <div style={{borderTop:`1px solid ${C.border}`,paddingTop:8,marginTop:4}}>
-          <div style={{fontSize:10,color:C.muted,marginBottom:6,textTransform:"uppercase",letterSpacing:0.8}}>Backup Signal Routing</div>
+          <div style={{fontSize:10,color:C.muted,marginBottom:6,textTransform:"uppercase",letterSpacing:0.8}}>Monitoring</div>
           <div style={{display:"flex",flexDirection:"column",gap:4}}>
             {[
-              {label:"Y001 → Belt FWD (backup)",active:beltBackup},
-              {label:"Y002 → Belt REV (backup)",active:false},
-              {label:"Y003 → Servo Enable (backup)",active:servoBackup},
-              {label:"Y004 → Gripper (backup)",active:false},
-              {label:"Y005 → Safety Stop (backup)",active:false},
+              {label:"PLC Signal Monitoring",val:"Active",ok:true},
+              {label:"Apera Server Health",val:isAperaCrash?"FAULT DETECTED":"Healthy",ok:!isAperaCrash},
+              {label:"Schunk/Stäubli Faults",val:isServoFault?"FAULT DETECTED":"None",ok:!isServoFault},
+              {label:"Camera Feeds",val:"Streaming",ok:true},
+              {label:"Network Devices",val:isRouterFreeze?"Router DOWN":"All Up",ok:!isRouterFreeze},
             ].map((r,i)=><div key={i} style={{
               display:"flex",alignItems:"center",justifyContent:"space-between",
               padding:"5px 10px",borderRadius:6,
-              backgroundColor:r.active?C.purpleDim:C.bg,border:`1px solid ${r.active?C.purple+"40":C.border}`,
+              backgroundColor:r.ok?C.bg:C.redDim,border:`1px solid ${r.ok?C.border:C.red+"40"}`,
             }}>
-              <span className="mono" style={{fontSize:11,color:r.active?C.purple:C.dim}}>{r.label}</span>
-              <span style={{fontSize:10,fontWeight:700,color:r.active?C.purple:C.muted}}>{r.active?"ACTIVE":"STANDBY"}</span>
+              <span style={{fontSize:11,color:r.ok?C.dim:C.red}}>{r.label}</span>
+              <span className="mono" style={{fontSize:10,fontWeight:700,color:r.ok?C.green:C.red}}>{r.val}</span>
             </div>)}
           </div>
         </div>
-        {!beltBackup&&!servoBackup&&<div style={{fontSize:11,color:C.muted,fontStyle:"italic",padding:"4px 0"}}>
-          All backup circuits on standby. Primary paths healthy. Full redundancy available.
-        </div>}
-        {(beltBackup||servoBackup)&&<div className="heal-box" style={{backgroundColor:C.purpleDim,borderColor:C.purple+"40",color:C.purple}}>
-          {beltBackup&&servoBackup?"2 circuits running on backup. ":"1 circuit running on backup. "}
-          Truck is operational but redundancy is reduced until physical repairs are completed.
-        </div>}
+        <div style={{fontSize:10,color:C.muted,lineHeight:1.5,fontStyle:"italic",padding:"2px 0"}}>
+          A Raspberry Pi with its own cellular. Sits on the network and listens. If it dies, the truck keeps running — we just lose visibility.
+        </div>
       </Panel>
     </div>
 
     {/* UMBILICAL */}
-    <div style={{marginTop:14,display:"grid",gridTemplateColumns:"1fr",gap:14}}>
-      <Panel title="25-Pin Umbilical Health" icon="🔌" status={beltDown?"error":beltBackup||predicted?"degraded":"ok"}>
+    <div style={{marginTop:14}}>
+      <Panel title="25-Pin Umbilical Health" icon="🔌" status={isWireFault?"error":"ok"}>
         <div style={{display:"flex",gap:20,alignItems:"flex-start",flexWrap:"wrap"}}>
           <div style={{flex:1,minWidth:240}}>
             <div style={{fontSize:11,color:C.dim,marginBottom:6}}>Cab (ZipLink) → Passenger Side → Rear (Bulkhead)</div>
             <div style={{display:"grid",gridTemplateColumns:"repeat(13,1fr)",gap:3}}>
               {Array.from({length:25},(_,i)=>{
                 const n=i+1;
-                const faulted = (scenario==="wire_auto"&&n===14);
-                const rerouted = (beltBackup&&n===14);
-                const degrading = (predicted&&n===14);
-                const fuseBad = (scenario==="fuse_auto"&&n===11);
-                const fuseFixed = (servoBackup&&n===11);
-                const bad = faulted||fuseBad;
-                const warn = degrading;
-                const bypass = rerouted||fuseFixed;
+                const faulted = isWireFault&&n===14;
                 return <div key={i} style={{textAlign:"center",padding:"5px 0",borderRadius:4,
-                  backgroundColor:bad&&!bypass?C.redDim:bypass?C.purpleDim:warn?C.amberDim:C.bg,
-                  border:`1px solid ${bad&&!bypass?C.red+"60":bypass?C.purple+"60":warn?C.amber+"60":C.border}`,
-                  animation:bad&&!bypass?"blink 1s step-end infinite":"none",
+                  backgroundColor:faulted?C.redDim:C.bg,
+                  border:`1px solid ${faulted?C.red+"60":C.border}`,
+                  animation:faulted?"blink 1s step-end infinite":"none",
                 }}>
                   <div className="mono" style={{fontSize:12,fontWeight:700,
-                    color:bad&&!bypass?C.red:bypass?C.purple:warn?C.amber:C.green}}>{n}</div>
-                  {bypass&&<div style={{fontSize:7,color:C.purple,fontWeight:700}}>BKP</div>}
-                  {warn&&!bypass&&<div style={{fontSize:7,color:C.amber,fontWeight:700}}>WARN</div>}
+                    color:faulted?C.red:C.green}}>{n}</div>
+                  {faulted&&<div style={{fontSize:7,color:C.red,fontWeight:700}}>OPEN</div>}
                 </div>;
               })}
             </div>
             <div style={{display:"flex",justifyContent:"space-between",marginTop:6}}>
               <span style={{fontSize:10,color:C.muted}}>
-                {beltDown?"24/25 healthy":beltBackup?"24/25 healthy (1 on backup)":predicted?"24/25 healthy (1 degrading)":servoDown?"24/25 healthy":servoBackup?"24/25 healthy (1 on backup)":"25/25 healthy"}
+                {isWireFault?"24/25 healthy — 1 open circuit":"25/25 healthy"}
               </span>
               <span style={{fontSize:10,fontWeight:700,
-                color:beltDown||servoDown?C.red:beltBackup||servoBackup?C.purple:predicted?C.amber:C.green}}>
-                {beltDown?"PIN 14 OPEN CIRCUIT":beltBackup?"PIN 14 → BACKUP ACTIVE":servoDown?"PIN 11 SIGNAL LOST":servoBackup?"PIN 11 → BACKUP ACTIVE":predicted?"PIN 14 DEGRADING":"ALL CLEAR"}
+                color:isWireFault?C.red:C.green}}>
+                {isWireFault?"PIN 14 — OPEN CIRCUIT":"ALL CLEAR"}
               </span>
             </div>
           </div>
-          {(beltBackup||servoBackup)&&<div style={{width:200,padding:"10px 14px",borderRadius:8,backgroundColor:C.bg,border:`1px solid ${C.purple}30`}}>
-            <div style={{fontSize:10,color:C.purple,fontWeight:700,marginBottom:6,textTransform:"uppercase",letterSpacing:0.8}}>Backup Route</div>
-            <div style={{fontSize:11,color:C.dim,lineHeight:1.6}}>
-              {beltBackup&&<div>Pin 14 → <span style={{color:C.red,textDecoration:"line-through"}}>Passenger side</span> → <span style={{color:C.purple,fontWeight:600}}>Click PLC Y001 (driver side)</span></div>}
-              {servoBackup&&<div>Pin 11 → <span style={{color:C.red,textDecoration:"line-through"}}>Primary fuse F7</span> → <span style={{color:C.purple,fontWeight:600}}>Click PLC Y003</span></div>}
-            </div>
-          </div>}
         </div>
       </Panel>
     </div>
 
-    {/* Command Log */}
+    {/* Event Log */}
     <div style={{marginTop:14,padding:"14px 18px",backgroundColor:C.panel,borderRadius:10,border:`1px solid ${C.border}`}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
         <div style={{display:"flex",alignItems:"center",gap:8}}>
           <span style={{fontSize:14}}>📜</span>
-          <span style={{fontSize:12,fontWeight:700,textTransform:"uppercase",letterSpacing:1,color:C.dim}}>System Event Log</span>
+          <span style={{fontSize:12,fontWeight:700,textTransform:"uppercase",letterSpacing:1,color:C.dim}}>Nervous System Event Log</span>
         </div>
         <button className="cmd-btn" onClick={()=>setCmdLog([])} style={{padding:"4px 10px",fontSize:10}}>Clear</button>
       </div>
       <div style={{maxHeight:200,overflowY:"auto",display:"flex",flexDirection:"column",gap:3}}>
-        {cmdLog.length===0&&<div style={{fontSize:11,color:C.muted,fontStyle:"italic",padding:"8px 0"}}>No events. Select a scenario above to watch the self-healing system respond.</div>}
+        {cmdLog.length===0&&<div style={{fontSize:11,color:C.muted,fontStyle:"italic",padding:"8px 0"}}>All systems nominal. Select a failure scenario above to see what the nervous system detects and how the digital twin guides the diagnosis.</div>}
         {cmdLog.map((entry,i)=>{
-          const color = entry.type==="fault"?C.red:entry.type==="heal"?C.cyan:entry.type==="notify"?C.amber:entry.type==="predict"?C.purple:entry.type==="status"?C.dim:C.accent;
-          const icon = entry.type==="fault"?"⚠":entry.type==="heal"?"🔄":entry.type==="notify"?"📱":entry.type==="predict"?"🔮":entry.type==="status"?"ℹ":"⚙";
+          const color = entry.type==="fault"?C.red:entry.type==="diagnosis"?C.cyan:entry.type==="warn"?C.amber:entry.type==="info"?C.accent:C.dim;
+          const icon = entry.type==="fault"?"⚠":entry.type==="diagnosis"?"🔍":entry.type==="warn"?"📉":entry.type==="info"?"ℹ":"•";
           return <div key={i} style={{display:"flex",gap:10,padding:"5px 8px",borderRadius:4,
             backgroundColor:i===0?`${color}10`:"transparent",animation:i===0?"slideIn 0.3s ease":"none"}}>
             <span style={{fontSize:11,flexShrink:0}}>{icon}</span>
             <span className="mono" style={{fontSize:10,color:C.muted,whiteSpace:"nowrap",flexShrink:0}}>{entry.time}</span>
-            <span className="mono" style={{fontSize:11,color:i<3?color:C.dim}}>{entry.cmd}</span>
+            <span className="mono" style={{fontSize:11,color:i<2?color:C.dim}}>{entry.cmd}</span>
           </div>;
         })}
       </div>
@@ -628,13 +549,29 @@ function App() {
     {/* Footer */}
     <div style={{marginTop:14,padding:"12px 16px",backgroundColor:C.panel,borderRadius:10,border:`1px solid ${C.border}`,
       display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8}}>
-      <div style={{fontSize:11,color:C.muted}}>B&B Enterprises • RAIV #3 Digital Twin • Self-Healing Dashboard</div>
+      <div style={{fontSize:11,color:C.muted}}>B&B Enterprises &bull; RAIV #3 Digital Twin &bull; Nervous System Dashboard</div>
       <div style={{display:"flex",gap:16}}>
-        <span style={{fontSize:11,color:C.cyan}}>🔄 Auto-Recovery: ON</span>
-        <span style={{fontSize:11,color:C.purple}}>🛡 Backup Routing: ON</span>
-        <span style={{fontSize:11,color:C.muted}}>🟢 Cellular Backhaul Active</span>
+        <span style={{fontSize:11,color:C.green}}>🧬 Nervous System: Online</span>
+        <span style={{fontSize:11,color:C.green}}>📡 Cellular Backhaul: Connected</span>
+        <span style={{fontSize:11,color:C.muted}}>🔧 Prototype — Bench Demo</span>
       </div>
     </div>
+
+    {/* The Ask */}
+    {isHealthy&&<div style={{
+      marginTop:14,padding:"20px 24px",backgroundColor:C.panel,borderRadius:12,border:`1px solid ${C.accent}30`,borderTop:`2px solid ${C.accent}40`,
+    }}>
+      <div style={{fontSize:14,fontWeight:700,color:C.text,marginBottom:8}}>The Ask</div>
+      <div style={{fontSize:12,color:C.dim,lineHeight:1.7}}>
+        Two weeks of bench time and $250 in parts. A Raspberry Pi mounted in the cab's IT rack with its own cellular connection. It reads signals from the PLC, monitors the Apera servers, watches for Stäubli fault codes through the Schunk controller, and tracks every camera feed and network device. It doesn't modify anything. It sits on the network and listens.
+      </div>
+      <div style={{fontSize:12,color:C.dim,lineHeight:1.7,marginTop:8}}>
+        If it works, the next time RAIV #3 goes down — nobody drives. We check the twin, call the operator, and tell them exactly where it hurts.
+      </div>
+      <div style={{fontSize:13,fontWeight:700,color:C.accent,marginTop:12,fontStyle:"italic"}}>
+        The Stäubli can move. The Apera can see. The PLC can route. But when something breaks, the truck goes silent. Build the nervous system. Give it a voice.
+      </div>
+    </div>}
   </div>;
 }
 
