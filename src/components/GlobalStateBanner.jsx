@@ -57,7 +57,11 @@ export const GlobalStateBanner = ({ eStop, operationMode, maintenanceMode }) => 
         </div>
         <div style={{ fontSize: 11, color: C.dim, lineHeight: 1.5 }}>{detail}</div>
       </div>
-      <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+      <div style={{ display: "flex", gap: 8, flexShrink: 0, alignItems: "center" }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, marginRight: 4 }}>
+          <span style={{ width: 5, height: 5, borderRadius: "50%", backgroundColor: color, animation: "dataFlow 1.5s ease-in-out infinite" }} />
+          <span style={{ fontSize: 7, color: C.muted, fontWeight: 600, letterSpacing: 0.3 }}>LIVE</span>
+        </div>
         {[
           { label: "E-STOP", val: eStop, critical: true },
           { label: "OP", val: operationMode },
@@ -72,6 +76,7 @@ export const GlobalStateBanner = ({ eStop, operationMode, maintenanceMode }) => 
             <div className="mono" style={{
               fontSize: 14, fontWeight: 800,
               color: s.critical && !s.val ? C.red : s.val ? C.green : C.muted,
+              transition: "color 0.3s ease",
             }}>{s.val ? "1" : "0"}</div>
           </div>
         ))}
