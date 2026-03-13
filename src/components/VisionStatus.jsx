@@ -11,11 +11,11 @@ const ResourceBar = ({ label, value, max, unit, warnAt, critAt }) => {
   const color = isCrit ? C.red : isWarn ? C.amber : C.green;
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 3 }}>
-      <span style={{ fontSize: 9, color: C.dim, width: 56, flexShrink: 0 }}>{label}</span>
+      <span style={{ fontSize: 11, color: C.dim, width: 60, flexShrink: 0 }}>{label}</span>
       <div style={{ flex: 1, height: 6, backgroundColor: C.bg, borderRadius: 3, border: `1px solid ${C.border}`, overflow: "hidden" }}>
         <div style={{ width: `${Math.min(pct, 100)}%`, height: "100%", backgroundColor: color, borderRadius: 3, transition: "width 0.3s" }} />
       </div>
-      <span className="mono" style={{ fontSize: 9, fontWeight: 700, color, width: 64, textAlign: "right", flexShrink: 0 }}>
+      <span className="mono" style={{ fontSize: 11, fontWeight: 700, color, width: 68, textAlign: "right", flexShrink: 0 }}>
         {value !== null ? `${value}${unit ? unit : ""}${max ? `/${max}` : ""}` : "—"}
       </span>
     </div>
@@ -37,9 +37,9 @@ const ServerCard = ({ label, server, isAlert }) => {
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
           <span style={{ width: 7, height: 7, borderRadius: "50%", backgroundColor: processColor, boxShadow: `0 0 4px ${processColor}40` }} />
-          <span style={{ fontSize: 10, fontWeight: 700, color: C.text }}>{label}</span>
+          <span style={{ fontSize: 12, fontWeight: 700, color: C.text }}>{label}</span>
         </div>
-        <span className="mono" style={{ fontSize: 8, fontWeight: 700, color: processColor, padding: "1px 5px", borderRadius: 3, backgroundColor: `${processColor}15`, border: `1px solid ${processColor}25` }}>
+        <span className="mono" style={{ fontSize: 10, fontWeight: 700, color: processColor, padding: "1px 5px", borderRadius: 3, backgroundColor: `${processColor}15`, border: `1px solid ${processColor}25` }}>
           {server.process}{server.pid ? ` (PID ${server.pid})` : ""}
         </span>
       </div>
@@ -60,29 +60,29 @@ const ServerCard = ({ label, server, isAlert }) => {
           { l: "Model", v: server.model, span: true },
         ].map((m, i) => (
           <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", ...(m.span ? { gridColumn: "span 2" } : {}) }}>
-            <span style={{ fontSize: 8, color: C.muted }}>{m.l}</span>
-            <span className="mono" style={{ fontSize: 8, fontWeight: 600, color: m.crit ? C.red : m.warn ? C.amber : C.dim }}>{m.v}</span>
+            <span style={{ fontSize: 10, color: C.muted }}>{m.l}</span>
+            <span className="mono" style={{ fontSize: 10, fontWeight: 600, color: m.crit ? C.red : m.warn ? C.amber : C.dim }}>{m.v}</span>
           </div>
         ))}
       </div>
 
       {/* Swap warning */}
       {server.swap && (
-        <div style={{ marginTop: 4, padding: "3px 6px", borderRadius: 4, backgroundColor: C.redDim, border: `1px solid ${C.red}30`, fontSize: 9, color: C.red, fontWeight: 600 }}>
+        <div style={{ marginTop: 4, padding: "3px 6px", borderRadius: 4, backgroundColor: C.redDim, border: `1px solid ${C.red}30`, fontSize: 11, color: C.red, fontWeight: 600 }}>
           SWAP ACTIVE: {server.swap} GB — OS paging to disk, severe performance impact
         </div>
       )}
 
       {/* Cache warning */}
       {server.cacheSize && (
-        <div style={{ marginTop: 3, padding: "3px 6px", borderRadius: 4, backgroundColor: C.amberDim, border: `1px solid ${C.amber}30`, fontSize: 9, color: C.amber, fontWeight: 600 }}>
+        <div style={{ marginTop: 3, padding: "3px 6px", borderRadius: 4, backgroundColor: C.amberDim, border: `1px solid ${C.amber}30`, fontSize: 11, color: C.amber, fontWeight: 600 }}>
           /tmp/apera_cache: {server.cacheSize} GB stale tensor caches (never freed)
         </div>
       )}
 
       {/* Exit code / last log for crashed process */}
       {server.exitCode && (
-        <div style={{ marginTop: 3, padding: "3px 6px", borderRadius: 4, backgroundColor: C.redDim, border: `1px solid ${C.red}30`, fontSize: 9, color: C.red, fontWeight: 600 }}>
+        <div style={{ marginTop: 3, padding: "3px 6px", borderRadius: 4, backgroundColor: C.redDim, border: `1px solid ${C.red}30`, fontSize: 11, color: C.red, fontWeight: 600 }}>
           Exit: {server.exitCode} — Last log: "{server.lastLog}"
         </div>
       )}
@@ -103,11 +103,11 @@ export const VisionStatus = ({ status, serverMetrics, confidence, fps }) => {
     }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ fontSize: 16 }}>👁</span>
-          <span style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1.2, color: C.dim }}>Vision Subsystem</span>
+          <span style={{ fontSize: 18 }}>👁</span>
+          <span style={{ fontSize: 14, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1.2, color: C.dim }}>Vision Subsystem</span>
           <DomainTag domain={IT} />
           <span style={{
-            fontSize: 8, padding: "2px 6px", borderRadius: 3,
+            fontSize: 10, padding: "2px 6px", borderRadius: 3,
             backgroundColor: C.cyanDim, color: C.cyan, border: `1px solid ${C.cyan}25`,
             fontWeight: 700, letterSpacing: 0.5,
           }}>IT DOMAIN</span>
@@ -132,23 +132,23 @@ export const VisionStatus = ({ status, serverMetrics, confidence, fps }) => {
       {/* Inference performance + camera path */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
         <div>
-          <div style={{ fontSize: 10, color: C.muted, marginBottom: 4, textTransform: "uppercase", letterSpacing: 0.8 }}>Inference Performance</div>
+          <div style={{ fontSize: 12, color: C.muted, marginBottom: 4, textTransform: "uppercase", letterSpacing: 0.8 }}>Inference Performance</div>
           <Bar label="Pick Confidence" value={confidence} unit="%" status={isDown ? "error" : isDegraded || isSlow ? "warn" : "ok"} />
           <div style={{ height: 4 }} />
           <Bar label="Vision FPS" value={fps} max={30} unit=" fps" status={isDown ? "error" : "ok"} />
         </div>
         <div>
-          <div style={{ fontSize: 10, color: C.muted, marginBottom: 4, textTransform: "uppercase", letterSpacing: 0.8 }}>Camera Network Path</div>
+          <div style={{ fontSize: 12, color: C.muted, marginBottom: 4, textTransform: "uppercase", letterSpacing: 0.8 }}>Camera Network Path</div>
           <div style={{ display: "flex", alignItems: "center", gap: 4, flexWrap: "wrap" }}>
             {["PoE Cameras (Z3)", "TRENDnet PoE (Z3)", "Netgear Switch (Z1)", "Dell Servers (Z1)"].map((step, i, arr) => (
               <span key={i} style={{ display: "flex", alignItems: "center", gap: 4 }}>
                 <span style={{
-                  fontSize: 9, padding: "3px 6px", borderRadius: 4,
+                  fontSize: 11, padding: "3px 6px", borderRadius: 4,
                   backgroundColor: isDown && i === 3 ? C.redDim : C.bg,
                   border: `1px solid ${isDown && i === 3 ? C.red + "40" : C.border}`,
                   color: isDown && i === 3 ? C.red : C.dim,
                 }}>{step}</span>
-                {i < arr.length - 1 && <span style={{ color: C.muted, fontSize: 10 }}>→</span>}
+                {i < arr.length - 1 && <span style={{ color: C.muted, fontSize: 12 }}>→</span>}
               </span>
             ))}
           </div>
@@ -157,7 +157,7 @@ export const VisionStatus = ({ status, serverMetrics, confidence, fps }) => {
             backgroundColor: C.bg, border: `1px solid ${C.border}`,
             textAlign: "center",
           }}>
-            <div style={{ fontSize: 9, color: C.muted, fontWeight: 600, letterSpacing: 0.5, textTransform: "uppercase" }}>
+            <div style={{ fontSize: 11, color: C.muted, fontWeight: 600, letterSpacing: 0.5, textTransform: "uppercase" }}>
               Future: Live Vision Feed via Stride Linx VPN
             </div>
           </div>
@@ -165,17 +165,17 @@ export const VisionStatus = ({ status, serverMetrics, confidence, fps }) => {
       </div>
 
       {isDown && (
-        <div className="diagnosis-box" style={{ backgroundColor: C.redDim, border: `1px solid ${C.red}30`, color: C.amber, fontSize: 11, marginTop: 10 }}>
+        <div className="diagnosis-box" style={{ backgroundColor: C.redDim, border: `1px solid ${C.red}30`, color: C.amber, fontSize: 13, marginTop: 10 }}>
           Server 1 process DEAD. Last log: "{serverMetrics.server1.lastLog || "unknown"}". Hardware healthy (CPU {serverMetrics.server1.temp}°C). 120V AC plane OK. Network OK. Restart process via VPN or power-cycle Dell.
         </div>
       )}
       {isDegraded && (
-        <div className="diagnosis-box" style={{ backgroundColor: C.amberDim, border: `1px solid ${C.amber}30`, color: C.amber, fontSize: 11, marginTop: 10 }}>
+        <div className="diagnosis-box" style={{ backgroundColor: C.amberDim, border: `1px solid ${C.amber}30`, color: C.amber, fontSize: 13, marginTop: 10 }}>
           Pick confidence degraded: 95% → {confidence}% this shift. Server resources healthy. Camera 2 auto-adjusted exposure — ambient light change on site.
         </div>
       )}
       {isSlow && (
-        <div className="diagnosis-box" style={{ backgroundColor: C.redDim, border: `1px solid ${C.red}30`, color: C.amber, fontSize: 11, marginTop: 10 }}>
+        <div className="diagnosis-box" style={{ backgroundColor: C.redDim, border: `1px solid ${C.red}30`, color: C.amber, fontSize: 13, marginTop: 10 }}>
           Server 1 critically slow — RAM {serverMetrics.server1.ram}/{serverMetrics.server1.ramMax} GB ({((serverMetrics.server1.ram / serverMetrics.server1.ramMax) * 100).toFixed(0)}%), GPU {serverMetrics.server1.gpu}/{serverMetrics.server1.gpuMax} GB VRAM. Inference {serverMetrics.server1.inferenceMs}ms (baseline 45ms). Process running {serverMetrics.server1.uptime} without restart — memory leak. Restart process to reclaim resources.
         </div>
       )}

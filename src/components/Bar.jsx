@@ -11,8 +11,8 @@ export const Bar = ({ value, max = 100, label, unit = "%", status }) => {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-        <span style={{ fontSize: 11, color: C.dim }}>{label}</span>
-        <span className="mono" style={{ fontSize: 18, fontWeight: 700, color, transition: "color 0.4s ease" }}>{value}{unit}</span>
+        <span style={{ fontSize: 13, color: C.dim }}>{label}</span>
+        <span className="mono" style={{ fontSize: 20, fontWeight: 700, color, transition: "color 0.4s ease" }}>{value}{unit}</span>
       </div>
       <div style={{ width: "100%", height: 6, borderRadius: 3, backgroundColor: C.border, overflow: "hidden", position: "relative" }}>
         <div style={{

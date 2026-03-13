@@ -4,7 +4,7 @@ import { PIN_MAP, PIN_GROUPS } from '../data/pinMap';
 export const PinTable = ({ pinStates, faultedPins }) => {
   return (
     <div>
-      <div style={{ fontSize: 10, color: C.muted, marginBottom: 10, textTransform: "uppercase", letterSpacing: 0.8 }}>
+      <div style={{ fontSize: 12, color: C.muted, marginBottom: 10, textTransform: "uppercase", letterSpacing: 0.8 }}>
         Murrelektronik Bulkhead (Z3) → 25-Pin Trunk (Passenger Side) → ZipLink Breakout (Z1 Cab) → FX5UC PLC
       </div>
 
@@ -12,7 +12,7 @@ export const PinTable = ({ pinStates, faultedPins }) => {
       <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
         {Object.entries(PIN_GROUPS).map(([key, g]) => (
           <span key={key} style={{
-            fontSize: 9, fontWeight: 700, padding: "3px 8px", borderRadius: 4,
+            fontSize: 11, fontWeight: 700, padding: "3px 8px", borderRadius: 4,
             backgroundColor: `${g.color}15`, color: g.color, border: `1px solid ${g.color}25`,
             letterSpacing: 0.5, display: "flex", alignItems: "center", gap: 4,
           }}>{g.icon} {g.label}</span>
@@ -26,7 +26,7 @@ export const PinTable = ({ pinStates, faultedPins }) => {
         border: `1px solid ${C.border}`, borderBottom: "none",
       }}>
         {["PIN", "WIRE", "TYPE", "PLC VARIABLE", "DESCRIPTION", "STATE", "HEALTH"].map(h => (
-          <span key={h} style={{ fontSize: 8, fontWeight: 700, color: C.muted, letterSpacing: 1, textTransform: "uppercase" }}>{h}</span>
+          <span key={h} style={{ fontSize: 10, fontWeight: 700, color: C.muted, letterSpacing: 1, textTransform: "uppercase" }}>{h}</span>
         ))}
       </div>
 
@@ -51,7 +51,7 @@ export const PinTable = ({ pinStates, faultedPins }) => {
               {/* Pin number */}
               <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
                 <span className="mono" style={{
-                  fontSize: 12, fontWeight: 700,
+                  fontSize: 14, fontWeight: 700,
                   color: faulted ? C.red : safetyFault ? C.red : group?.color || C.text,
                 }}>{pin.pin}</span>
               </div>
@@ -67,7 +67,7 @@ export const PinTable = ({ pinStates, faultedPins }) => {
 
               {/* Type badge */}
               <span style={{
-                fontSize: 8, fontWeight: 700, padding: "2px 6px", borderRadius: 3,
+                fontSize: 10, fontWeight: 700, padding: "2px 6px", borderRadius: 3,
                 backgroundColor: isSafety ? C.redDim : isInput ? C.cyanDim : C.purpleDim,
                 color: isSafety ? C.red : isInput ? C.cyan : C.purple,
                 border: `1px solid ${isSafety ? C.red : isInput ? C.cyan : C.purple}25`,
@@ -76,12 +76,12 @@ export const PinTable = ({ pinStates, faultedPins }) => {
 
               {/* Variable name */}
               <span className="mono" style={{
-                fontSize: 11, fontWeight: 600,
+                fontSize: 13, fontWeight: 600,
                 color: faulted ? C.red : safetyFault ? C.red : C.text,
               }}>{pin.variable}</span>
 
               {/* Description */}
-              <span style={{ fontSize: 10, color: C.dim, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              <span style={{ fontSize: 12, color: C.dim, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                 {pin.description}
               </span>
 
@@ -93,14 +93,14 @@ export const PinTable = ({ pinStates, faultedPins }) => {
                   boxShadow: state ? `0 0 6px ${C.green}40` : safetyFault ? `0 0 6px ${C.red}40` : "none",
                 }} />
                 <span className="mono" style={{
-                  fontSize: 11, fontWeight: 700,
+                  fontSize: 13, fontWeight: 700,
                   color: state === undefined ? C.muted : state ? C.green : (isSafety ? C.red : C.muted),
                 }}>{state === undefined ? "—" : state ? "HIGH" : "LOW"}</span>
               </div>
 
               {/* Health */}
               <span style={{
-                fontSize: 9, fontWeight: 700,
+                fontSize: 11, fontWeight: 700,
                 color: faulted ? C.red : safetyFault ? C.red : C.green,
               }}>{faulted ? "FAULT" : safetyFault ? "ALARM" : "✓ OK"}</span>
             </div>
@@ -110,11 +110,11 @@ export const PinTable = ({ pinStates, faultedPins }) => {
 
       {/* Summary */}
       <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8, padding: "0 4px" }}>
-        <span style={{ fontSize: 10, color: C.muted }}>
+        <span style={{ fontSize: 12, color: C.muted }}>
           {faultedPins.length === 0 ? "25/25 pins healthy" : `${25 - faultedPins.length}/25 healthy — ${faultedPins.length} fault${faultedPins.length > 1 ? "s" : ""}`}
         </span>
         {faultedPins.length > 0 && (
-          <span style={{ fontSize: 10, fontWeight: 700, color: C.red }}>
+          <span style={{ fontSize: 12, fontWeight: 700, color: C.red }}>
             FAULT: PIN{faultedPins.length > 1 ? "S" : ""} {faultedPins.join(", ")}
           </span>
         )}

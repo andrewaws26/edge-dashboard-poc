@@ -11,7 +11,6 @@ import { PinTable } from './components/PinTable';
 import { ZoneTopology } from './components/ZoneTopology';
 import { VisionStatus } from './components/VisionStatus';
 import { SignalTrace } from './components/SignalTrace';
-import { VehicleSchematic } from './components/VehicleSchematic';
 import {
   SCENARIO_BUTTONS, SCENARIO_LOGS, SCENARIO_TOASTS, DIAGNOSIS_MAP,
   SCENARIO_STATE_MACHINE, SCENARIO_PIN_STATES, SCENARIO_FAULTED_PINS,
@@ -142,18 +141,18 @@ export default function App() {
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div style={{ width: 44, height: 44, borderRadius: 10, backgroundColor: C.accent + "15", border: `1px solid ${C.accent}30`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22 }}>🚛</div>
           <div>
-            <h1 style={{ fontSize: 24, fontWeight: 800, color: C.white, letterSpacing: -0.5 }}>
-              RAIV #3 <span style={{ color: C.dim, fontWeight: 400, fontSize: 15 }}>Digital Twin — Nervous System</span>
+            <h1 style={{ fontSize: 28, fontWeight: 800, color: C.white, letterSpacing: -0.5 }}>
+              RAIV #3 <span style={{ color: C.dim, fontWeight: 400, fontSize: 17 }}>Digital Twin — Nervous System</span>
             </h1>
-            <div style={{ fontSize: 11, color: C.muted, marginTop: 2, display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+            <div style={{ fontSize: 13, color: C.muted, marginTop: 2, display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
               <span>B&B Enterprises &bull; Louisville, KY → Field Site</span>
               <span>&bull; Telemetry: <span style={{ color: isRouterFreeze ? C.red : C.green }}>{isRouterFreeze ? "VPN Down" : "Stride Linx VPN"}</span></span>
               <span>&bull; Backhaul: <span style={{ color: C.green }}>Pi Cellular</span></span>
               <span style={{ borderLeft: `1px solid ${C.border}`, paddingLeft: 6, display: "inline-flex", alignItems: "center", gap: 5 }}>
                 <span style={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: C.green, animation: "liveDot 2s ease-in-out infinite", flexShrink: 0 }} />
-                <span className="mono" style={{ color: C.green, fontSize: 10 }}>{clock.toLocaleTimeString()}</span>
-                <span className="mono" style={{ color: C.dim, fontSize: 9 }}>UP {fmtUptime(uptime)}</span>
-                <span className="mono" style={{ color: C.muted, fontSize: 9 }}>t={tick}</span>
+                <span className="mono" style={{ color: C.green, fontSize: 12 }}>{clock.toLocaleTimeString()}</span>
+                <span className="mono" style={{ color: C.dim, fontSize: 11 }}>UP {fmtUptime(uptime)}</span>
+                <span className="mono" style={{ color: C.muted, fontSize: 11 }}>t={tick}</span>
               </span>
             </div>
           </div>
@@ -164,7 +163,7 @@ export default function App() {
             <DomainTag domain={OT} />
           </div>
           <span style={{
-            fontSize: 9, fontWeight: 700, padding: "3px 8px", borderRadius: 4,
+            fontSize: 11, fontWeight: 700, padding: "3px 8px", borderRadius: 4,
             backgroundColor: C.bg, color: C.muted, border: `1px solid ${C.border}`,
             letterSpacing: 0.5,
           }}>READ-ONLY OBSERVABILITY</span>
@@ -180,7 +179,7 @@ export default function App() {
 
       {/* Scenario buttons */}
       <div style={{ display: "flex", gap: 5, marginBottom: 16, flexWrap: "wrap", padding: "10px 14px", backgroundColor: C.panel, borderRadius: 10, border: `1px solid ${C.border}` }}>
-        <span style={{ fontSize: 10, color: C.muted, alignSelf: "center", marginRight: 6, fontWeight: 700 }}>SIMULATE:</span>
+        <span style={{ fontSize: 12, color: C.muted, alignSelf: "center", marginRight: 6, fontWeight: 700 }}>SIMULATE:</span>
         {SCENARIO_BUTTONS.map(s => {
           const active = scenario === s.id;
           const isOk = s.id === "healthy" || s.id === "maintenance";
@@ -190,7 +189,7 @@ export default function App() {
               border: `1px solid ${active ? (isOk ? C.green : C.red) : C.border}`,
               backgroundColor: active ? (isOk ? C.greenDim : C.redDim) : "transparent",
               color: active ? (isOk ? C.green : C.red) : C.dim,
-              fontSize: 10, fontWeight: 600, cursor: "pointer", transition: "all 0.2s",
+              fontSize: 12, fontWeight: 600, cursor: "pointer", transition: "all 0.2s",
             }}>{s.e} {s.label}</button>
           );
         })}
@@ -204,15 +203,12 @@ export default function App() {
         traceSteps={currentDiagnosis.traceSteps}
       />}
 
-      {/* === VEHICLE SCHEMATIC === */}
-      <VehicleSchematic scenario={scenario} />
-
       {/* === ZONE TOPOLOGY === */}
       <div style={{ marginBottom: 14 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-          <span style={{ fontSize: 14 }}>🏗</span>
-          <span style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1.2, color: C.dim }}>Physical Zone Topology</span>
-          <span style={{ fontSize: 9, color: C.muted }}>&mdash; Every device, every zone, at a glance</span>
+          <span style={{ fontSize: 16 }}>🏗</span>
+          <span style={{ fontSize: 14, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1.2, color: C.dim }}>Physical Zone Topology</span>
+          <span style={{ fontSize: 11, color: C.muted }}>&mdash; Every device, every zone, at a glance</span>
         </div>
         <ZoneTopology scenario={scenario} />
       </div>
@@ -257,11 +253,11 @@ export default function App() {
 
           {/* Power */}
           <Panel title="Power Distribution" icon="⚡" status="ok" zone="Z1+Z2">
-            <div style={{ fontSize: 9, color: C.cyan, fontWeight: 700, letterSpacing: 0.5 }}>AC PLANE (120V)</div>
+            <div style={{ fontSize: 11, color: C.cyan, fontWeight: 700, letterSpacing: 0.5 }}>AC PLANE (120V)</div>
             <Metric label="Generator/Inverter (Z2)" value="RUNNING" status="ok" small />
             <Metric label="→ IT Stack (Dell, Netgear)" value="NOMINAL" status="ok" small />
             <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 4, marginTop: 4 }}>
-              <div style={{ fontSize: 9, color: C.orange, fontWeight: 700, letterSpacing: 0.5 }}>DC PLANE (24V)</div>
+              <div style={{ fontSize: 11, color: C.orange, fontWeight: 700, letterSpacing: 0.5 }}>DC PLANE (24V)</div>
               <Metric label="Rhino PSR 24-480 (Z1)" value="24.1V" status="ok" small />
               <Metric label="→ OT Stack (PLC, Schunk, Relays)" value="NOMINAL" status="ok" small />
             </div>
@@ -279,13 +275,13 @@ export default function App() {
 
           {/* Per-axis table */}
           <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 6, marginTop: 4 }}>
-            <div style={{ fontSize: 9, color: C.muted, marginBottom: 4, textTransform: "uppercase", letterSpacing: 0.8 }}>Per-Axis Diagnostics</div>
+            <div style={{ fontSize: 11, color: C.muted, marginBottom: 4, textTransform: "uppercase", letterSpacing: 0.8 }}>Per-Axis Diagnostics</div>
             <div style={{
               display: "grid", gridTemplateColumns: "32px 52px 40px 44px 1fr",
               gap: 1, padding: "4px 6px", backgroundColor: C.bg, borderRadius: "4px 4px 0 0", border: `1px solid ${C.border}`, borderBottom: "none",
             }}>
               {["AXIS", "JOINT", "TEMP", "TORQ", "STATUS"].map(h => (
-                <span key={h} style={{ fontSize: 7, fontWeight: 700, color: C.muted, letterSpacing: 0.5 }}>{h}</span>
+                <span key={h} style={{ fontSize: 9, fontWeight: 700, color: C.muted, letterSpacing: 0.5 }}>{h}</span>
               ))}
             </div>
             <div style={{ border: `1px solid ${C.border}`, borderRadius: "0 0 4px 4px", overflow: "hidden" }}>
@@ -301,11 +297,11 @@ export default function App() {
                     backgroundColor: isFault ? C.redDim : "transparent",
                     borderBottom: `1px solid ${C.border}`,
                   }}>
-                    <span className="mono" style={{ fontSize: 10, fontWeight: 700, color: isFault ? C.red : C.text }}>J{ax.id}</span>
-                    <span style={{ fontSize: 8, color: C.dim }}>{ax.name}</span>
-                    <span className="mono" style={{ fontSize: 9, fontWeight: 600, color: tempWarn ? C.amber : C.dim }}>{ax.temp}°</span>
-                    <span className="mono" style={{ fontSize: 9, fontWeight: 600, color: isFault ? C.red : torqueWarn ? C.amber : C.dim }}>{ax.torque}%</span>
-                    <span className="mono" style={{ fontSize: 8, fontWeight: 700, color: isFault ? C.red : isStopped ? C.amber : C.green }}>
+                    <span className="mono" style={{ fontSize: 12, fontWeight: 700, color: isFault ? C.red : C.text }}>J{ax.id}</span>
+                    <span style={{ fontSize: 10, color: C.dim }}>{ax.name}</span>
+                    <span className="mono" style={{ fontSize: 11, fontWeight: 600, color: tempWarn ? C.amber : C.dim }}>{ax.temp}°</span>
+                    <span className="mono" style={{ fontSize: 11, fontWeight: 600, color: isFault ? C.red : torqueWarn ? C.amber : C.dim }}>{ax.torque}%</span>
+                    <span className="mono" style={{ fontSize: 10, fontWeight: 700, color: isFault ? C.red : isStopped ? C.amber : C.green }}>
                       {isFault ? ax.error : isStopped ? "STOPPED" : ax.position !== null ? `${ax.position}°` : "—"}
                     </span>
                   </div>
@@ -317,42 +313,42 @@ export default function App() {
           {/* EtherCAT + cycle stats */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, marginTop: 6 }}>
             <div style={{ padding: "6px 8px", borderRadius: 4, backgroundColor: C.bg, border: `1px solid ${C.border}` }}>
-              <div style={{ fontSize: 8, color: C.muted, fontWeight: 700, letterSpacing: 0.5, marginBottom: 2 }}>ETHERCAT BUS</div>
+              <div style={{ fontSize: 10, color: C.muted, fontWeight: 700, letterSpacing: 0.5, marginBottom: 2 }}>ETHERCAT BUS</div>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ fontSize: 8, color: C.dim }}>Packets</span>
-                <span className="mono" style={{ fontSize: 8, fontWeight: 600, color: C.green }}>{robotMetrics.ethercat.packetRate}/s</span>
+                <span style={{ fontSize: 10, color: C.dim }}>Packets</span>
+                <span className="mono" style={{ fontSize: 10, fontWeight: 600, color: C.green }}>{robotMetrics.ethercat.packetRate}/s</span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ fontSize: 8, color: C.dim }}>Errors</span>
-                <span className="mono" style={{ fontSize: 8, fontWeight: 600, color: robotMetrics.ethercat.errors > 0 ? C.red : C.green }}>{robotMetrics.ethercat.errors}</span>
+                <span style={{ fontSize: 10, color: C.dim }}>Errors</span>
+                <span className="mono" style={{ fontSize: 10, fontWeight: 600, color: robotMetrics.ethercat.errors > 0 ? C.red : C.green }}>{robotMetrics.ethercat.errors}</span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ fontSize: 8, color: C.dim }}>Uptime</span>
-                <span className="mono" style={{ fontSize: 8, color: C.dim }}>{robotMetrics.ethercat.uptime}</span>
+                <span style={{ fontSize: 10, color: C.dim }}>Uptime</span>
+                <span className="mono" style={{ fontSize: 10, color: C.dim }}>{robotMetrics.ethercat.uptime}</span>
               </div>
             </div>
             <div style={{ padding: "6px 8px", borderRadius: 4, backgroundColor: C.bg, border: `1px solid ${C.border}` }}>
-              <div style={{ fontSize: 8, color: C.muted, fontWeight: 700, letterSpacing: 0.5, marginBottom: 2 }}>CYCLE INFO</div>
+              <div style={{ fontSize: 10, color: C.muted, fontWeight: 700, letterSpacing: 0.5, marginBottom: 2 }}>CYCLE INFO</div>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ fontSize: 8, color: C.dim }}>Total</span>
-                <span className="mono" style={{ fontSize: 8, fontWeight: 600, color: C.dim }}>{robotMetrics.totalCycles.toLocaleString()}</span>
+                <span style={{ fontSize: 10, color: C.dim }}>Total</span>
+                <span className="mono" style={{ fontSize: 10, fontWeight: 600, color: C.dim }}>{robotMetrics.totalCycles.toLocaleString()}</span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ fontSize: 8, color: C.dim }}>Cycle time</span>
-                <span className="mono" style={{ fontSize: 8, fontWeight: 600, color: C.dim }}>{robotMetrics.cycleTime ? `${robotMetrics.cycleTime}s` : "—"}</span>
+                <span style={{ fontSize: 10, color: C.dim }}>Cycle time</span>
+                <span className="mono" style={{ fontSize: 10, fontWeight: 600, color: C.dim }}>{robotMetrics.cycleTime ? `${robotMetrics.cycleTime}s` : "—"}</span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ fontSize: 8, color: C.dim }}>Last home</span>
-                <span className="mono" style={{ fontSize: 8, color: C.dim }}>{robotMetrics.lastHome}</span>
+                <span style={{ fontSize: 10, color: C.dim }}>Last home</span>
+                <span className="mono" style={{ fontSize: 10, color: C.dim }}>{robotMetrics.lastHome}</span>
               </div>
             </div>
           </div>
 
-          {isServoFault && <div className="diagnosis-box" style={{ backgroundColor: C.redDim, border: `1px solid ${C.red}30`, color: C.amber, fontSize: 11, marginTop: 6 }}>
+          {isServoFault && <div className="diagnosis-box" style={{ backgroundColor: C.redDim, border: `1px solid ${C.red}30`, color: C.amber, fontSize: 13, marginTop: 6 }}>
             {robotMetrics.faultCode}: Axis 3 following error, torque spike to {robotMetrics.axes[2].torque}%. Motor temp {robotMetrics.axes[2].temp}°C (limit 85°C — not thermal). Likely unexpected load or collision. EtherCAT healthy. Recoverable remotely.
           </div>}
 
-          <div style={{ marginTop: 4, fontSize: 9, color: C.dim }}>
+          <div style={{ marginTop: 4, fontSize: 11, color: C.dim }}>
             <em>PLC sends permissive signals only. Sub-ms kinematics on isolated EtherCAT.</em>
           </div>
         </Panel>
@@ -370,7 +366,7 @@ export default function App() {
             <Metric label='diEGM["Part_Detect"]' value={pinStates[21] ? "PRESENT" : "CLEAR"} status={isGripperStuck ? "error" : "ok"} />
             <Metric label="Schunk UXB 24V" value="HEALTHY" status="ok" small />
           </div>
-          {isGripperStuck && <div className="diagnosis-box" style={{ backgroundColor: C.amberDim, border: `1px solid ${C.amber}30`, color: C.amber, fontSize: 11 }}>
+          {isGripperStuck && <div className="diagnosis-box" style={{ backgroundColor: C.amberDim, border: `1px solid ${C.amber}30`, color: C.amber, fontSize: 13 }}>
             DEMAG active but part sensor still reads PRESENT. Schunk UXB healthy on 24V DC. Residual magnetism &mdash; not software. Operator clears manually.
           </div>}
         </Panel>
@@ -381,7 +377,7 @@ export default function App() {
           <Metric label="Cellular Backhaul" value="CONNECTED" status="ok" />
           <Metric label="Independence" value="Separate from Stride Linx" status="info" small />
           <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 6, marginTop: 4 }}>
-            <div style={{ fontSize: 9, color: C.muted, marginBottom: 4, textTransform: "uppercase", letterSpacing: 0.8 }}>Subsystem Health</div>
+            <div style={{ fontSize: 11, color: C.muted, marginBottom: 4, textTransform: "uppercase", letterSpacing: 0.8 }}>Subsystem Health</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
               {[
                 { label: "FX5UC PLC (OT)", val: isEstop ? "E-STOP" : "Active", ok: !isEstop },
@@ -399,8 +395,8 @@ export default function App() {
                 backgroundColor: r.ok ? C.bg : C.redDim,
                 border: `1px solid ${r.ok ? C.border : C.red + "40"}`,
               }}>
-                <span style={{ fontSize: 9, color: r.ok ? C.dim : C.red }}>{r.label}</span>
-                <span className="mono" style={{ fontSize: 8, fontWeight: 700, color: r.ok ? C.green : C.red }}>{r.val}</span>
+                <span style={{ fontSize: 11, color: r.ok ? C.dim : C.red }}>{r.label}</span>
+                <span className="mono" style={{ fontSize: 10, fontWeight: 700, color: r.ok ? C.green : C.red }}>{r.val}</span>
               </div>)}
             </div>
           </div>
@@ -421,14 +417,14 @@ export default function App() {
       <div style={{ padding: "14px 18px", backgroundColor: C.panel, borderRadius: 10, border: `1px solid ${C.border}`, marginBottom: 14 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span style={{ fontSize: 14 }}>📜</span>
-            <span style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1, color: C.dim }}>Diagnostic Event Log</span>
-            <span style={{ fontSize: 9, color: C.muted }}>&mdash; Linear trace from physical origin to software execution</span>
+            <span style={{ fontSize: 16 }}>📜</span>
+            <span style={{ fontSize: 14, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1, color: C.dim }}>Diagnostic Event Log</span>
+            <span style={{ fontSize: 11, color: C.muted }}>&mdash; Linear trace from physical origin to software execution</span>
           </div>
-          <button className="cmd-btn" onClick={() => setCmdLog([])} style={{ padding: "4px 10px", fontSize: 10 }}>Clear</button>
+          <button className="cmd-btn" onClick={() => setCmdLog([])} style={{ padding: "4px 10px", fontSize: 12 }}>Clear</button>
         </div>
         <div style={{ maxHeight: 280, overflowY: "auto", display: "flex", flexDirection: "column", gap: 2 }}>
-          {cmdLog.length === 0 && <div style={{ fontSize: 11, color: C.muted, fontStyle: "italic", padding: "8px 0" }}>No events. Select a fault scenario to see diagnostic trace.</div>}
+          {cmdLog.length === 0 && <div style={{ fontSize: 13, color: C.muted, fontStyle: "italic", padding: "8px 0" }}>No events. Select a fault scenario to see diagnostic trace.</div>}
           {cmdLog.map((entry, i) => {
             const color = entry.type === "fault" ? C.red : entry.type === "diagnosis" ? C.cyan : entry.type === "warn" ? C.amber : entry.type === "trace" ? C.purple : entry.type === "info" ? C.accent : C.dim;
             const badge = entry.type === "fault" ? "FAULT" : entry.type === "diagnosis" ? "DIAG" : entry.type === "warn" ? "WARN" : entry.type === "trace" ? "TRACE" : entry.type === "info" ? "INFO" : "LOG";
@@ -438,11 +434,11 @@ export default function App() {
               animation: i === 0 ? "slideIn 0.3s ease" : "none",
             }}>
               <span style={{
-                fontSize: 7, fontWeight: 800, padding: "2px 5px", borderRadius: 3, flexShrink: 0, marginTop: 1,
+                fontSize: 9, fontWeight: 800, padding: "2px 5px", borderRadius: 3, flexShrink: 0, marginTop: 1,
                 backgroundColor: `${color}20`, color, border: `1px solid ${color}30`, letterSpacing: 0.5,
               }}>{badge}</span>
-              <span className="mono" style={{ fontSize: 9, color: C.muted, whiteSpace: "nowrap", flexShrink: 0, marginTop: 1 }}>{entry.time}</span>
-              <span className="mono" style={{ fontSize: 10, color: i < 3 ? color : C.dim, lineHeight: 1.4 }}>{entry.cmd}</span>
+              <span className="mono" style={{ fontSize: 11, color: C.muted, whiteSpace: "nowrap", flexShrink: 0, marginTop: 1 }}>{entry.time}</span>
+              <span className="mono" style={{ fontSize: 12, color: i < 3 ? color : C.dim, lineHeight: 1.4 }}>{entry.cmd}</span>
             </div>;
           })}
         </div>
@@ -453,13 +449,13 @@ export default function App() {
         padding: "10px 16px", backgroundColor: C.panel, borderRadius: 10, border: `1px solid ${C.border}`,
         display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8,
       }}>
-        <div style={{ fontSize: 10, color: C.muted }}>
+        <div style={{ fontSize: 12, color: C.muted }}>
           B&amp;B Enterprises &bull; RAIV #3 Digital Twin &bull; Nervous System Observability Dashboard &bull; <span style={{ color: C.dim }}>Read-Only Telemetry</span>
         </div>
         <div style={{ display: "flex", gap: 14 }}>
-          <span style={{ fontSize: 10, color: C.green }}>🧬 Nervous System: Online</span>
-          <span style={{ fontSize: 10, color: C.green }}>📡 Cellular: Connected</span>
-          <span style={{ fontSize: 10, color: C.muted }}>v2.0</span>
+          <span style={{ fontSize: 12, color: C.green }}>🧬 Nervous System: Online</span>
+          <span style={{ fontSize: 12, color: C.green }}>📡 Cellular: Connected</span>
+          <span style={{ fontSize: 12, color: C.muted }}>v2.0</span>
         </div>
       </div>
     </div>

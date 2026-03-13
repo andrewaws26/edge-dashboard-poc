@@ -62,7 +62,7 @@ body {
   border: 1px solid #3b82f640;
   background: #1e3a5f;
   color: #3b82f6;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s;
@@ -82,7 +82,7 @@ body {
   max-width: 440px;
   padding: 14px 20px;
   border-radius: 10px;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
   z-index: 100;
   animation: slideIn 0.3s ease;
@@ -95,14 +95,14 @@ body {
 .diagnosis-box {
   border-radius: 8px;
   padding: 12px 14px;
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.6;
 }
 
 .operator-action {
   border-radius: 8px;
   padding: 10px 14px;
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.5;
   display: flex;
   gap: 10px;
@@ -110,7 +110,7 @@ body {
 }
 
 .zone-label {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1.2px;
@@ -127,17 +127,17 @@ body {
   gap: 6px;
   padding: 6px 10px;
   border-radius: 6px;
-  font-size: 11px;
+  font-size: 13px;
 }
 
 .signal-arrow {
   color: #475569;
-  font-size: 12px;
+  font-size: 14px;
   flex-shrink: 0;
 }
 
 .domain-tag {
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 700;
   padding: 2px 6px;
   border-radius: 3px;

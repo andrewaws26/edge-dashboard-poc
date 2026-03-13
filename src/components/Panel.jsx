@@ -25,15 +25,15 @@ export const Panel = ({ title, bodyPart, icon, status, zone, domain, children, s
   const header = (isModal) => (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-        <span style={{ fontSize: isModal ? 22 : 16 }}>{icon}</span>
+        <span style={{ fontSize: isModal ? 24 : 18 }}>{icon}</span>
         <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-          <span style={{ fontSize: isModal ? 16 : 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1.2, color: C.dim }}>{title}</span>
-          {bodyPart && <span style={{ fontSize: isModal ? 12 : 10, color: C.muted }}>The {bodyPart}</span>}
+          <span style={{ fontSize: isModal ? 18 : 14, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1.2, color: C.dim }}>{title}</span>
+          {bodyPart && <span style={{ fontSize: isModal ? 14 : 12, color: C.muted }}>The {bodyPart}</span>}
           {domain && <DomainTag domain={domain} />}
         </div>
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-        {zone && <span style={{ fontSize: isModal ? 11 : 9, color: C.muted, fontWeight: 600, letterSpacing: 0.5 }}>{zone}</span>}
+        {zone && <span style={{ fontSize: isModal ? 13 : 11, color: C.muted, fontWeight: 600, letterSpacing: 0.5 }}>{zone}</span>}
         <Dot status={status} pulse />
         {isModal ? (
           <button onClick={(e) => { e.stopPropagation(); setModalOpen(false); }} style={{

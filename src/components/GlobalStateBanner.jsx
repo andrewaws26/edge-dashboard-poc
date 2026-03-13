@@ -48,19 +48,19 @@ export const GlobalStateBanner = ({ eStop, operationMode, maintenanceMode }) => 
       }}>{icon}</div>
       <div style={{ flex: 1 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
-          <span style={{ fontSize: 18, fontWeight: 800, color, letterSpacing: 1 }}>{state}</span>
+          <span style={{ fontSize: 20, fontWeight: 800, color, letterSpacing: 1 }}>{state}</span>
           <span style={{
-            fontSize: 9, fontWeight: 700, padding: "2px 8px", borderRadius: 4,
+            fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 4,
             backgroundColor: `${color}20`, color, border: `1px solid ${color}30`,
             letterSpacing: 0.8, textTransform: "uppercase",
           }}>GLOBAL STATE</span>
         </div>
-        <div style={{ fontSize: 11, color: C.dim, lineHeight: 1.5 }}>{detail}</div>
+        <div style={{ fontSize: 13, color: C.dim, lineHeight: 1.5 }}>{detail}</div>
       </div>
       <div style={{ display: "flex", gap: 8, flexShrink: 0, alignItems: "center" }}>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, marginRight: 4 }}>
           <span style={{ width: 5, height: 5, borderRadius: "50%", backgroundColor: color, animation: "dataFlow 1.5s ease-in-out infinite" }} />
-          <span style={{ fontSize: 7, color: C.muted, fontWeight: 600, letterSpacing: 0.3 }}>LIVE</span>
+          <span style={{ fontSize: 9, color: C.muted, fontWeight: 600, letterSpacing: 0.3 }}>LIVE</span>
         </div>
         {[
           { label: "E-STOP", val: eStop, critical: true },
@@ -72,9 +72,9 @@ export const GlobalStateBanner = ({ eStop, operationMode, maintenanceMode }) => 
             backgroundColor: s.critical && !s.val ? C.redDim : s.val ? `${C.green}15` : C.bg,
             border: `1px solid ${s.critical && !s.val ? C.red + "60" : s.val ? C.green + "30" : C.border}`,
           }}>
-            <div style={{ fontSize: 8, color: C.muted, fontWeight: 700, letterSpacing: 0.5, marginBottom: 2 }}>{s.label}</div>
+            <div style={{ fontSize: 10, color: C.muted, fontWeight: 700, letterSpacing: 0.5, marginBottom: 2 }}>{s.label}</div>
             <div className="mono" style={{
-              fontSize: 14, fontWeight: 800,
+              fontSize: 16, fontWeight: 800,
               color: s.critical && !s.val ? C.red : s.val ? C.green : C.muted,
               transition: "color 0.3s ease",
             }}>{s.val ? "1" : "0"}</div>
