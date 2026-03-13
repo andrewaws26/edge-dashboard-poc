@@ -14,7 +14,7 @@ import { SignalTrace } from './components/SignalTrace';
 import {
   SCENARIO_BUTTONS, SCENARIO_LOGS, SCENARIO_TOASTS, DIAGNOSIS_MAP,
   SCENARIO_STATE_MACHINE, SCENARIO_PIN_STATES, SCENARIO_FAULTED_PINS,
-  SCENARIO_SIGNAL_TRACE,
+  SCENARIO_SIGNAL_TRACE, SCENARIO_VISION_METRICS, SCENARIO_ROBOT_METRICS,
 } from './data/scenarios';
 
 export default function App() {
@@ -68,9 +68,14 @@ export default function App() {
   const isRouterFreeze = scenario === "router_freeze";
   const isGripperStuck = scenario === "gripper_stuck";
   const isAperaDrift = scenario === "apera_drift";
+  const isAperaMemory = scenario === "apera_memory";
   const isEstop = scenario === "estop";
   const isMaintenance = scenario === "maintenance";
   const isConflict = scenario === "state_conflict";
+
+  // Vision and robot metrics
+  const visionMetrics = SCENARIO_VISION_METRICS[scenario] || SCENARIO_VISION_METRICS.healthy;
+  const robotMetrics = SCENARIO_ROBOT_METRICS[scenario] || SCENARIO_ROBOT_METRICS.healthy;
 
   // Overall border color for maintenance/halt modes
   const pageBorderColor = isEstop || isConflict ? C.red : isMaintenance ? C.amber : "transparent";
@@ -183,7 +188,7 @@ export default function App() {
 
           {/* Network Status */}
           <Panel title="Network Topology" icon="📡" status={isRouterFreeze ? "error" : "ok"} zone="ALL ZONES">
-            <Metric label="Vision/IT (Ethernet/PoE)" value={isAperaCrash ? "DEGRADED" : "HEALTHY"} status={isAperaCrash ? "error" : isAperaDrift ? "warn" : "ok"} small />
+            <Metric label="Vision/IT (Ethernet/PoE)" value={isAperaCrash ? "DEGRADED" : isAperaMemory ? "SLOW" : "HEALTHY"} status={isAperaCrash ? "error" : isAperaDrift || isAperaMemory ? "warn" : "ok"} small />
             <Metric label="Motion/OT (EtherCAT)" value="HEALTHY" status="ok" small />
             <Metric label="Telemetry (Stride Linx VPN)" value={isRouterFreeze ? "UNRESPONSIVE" : "CONNECTED"} status={isRouterFreeze ? "error" : "ok"} small />
             <Metric label="Pi Cellular Backhaul" value="CONNECTED" status="ok" small />
@@ -212,18 +217,86 @@ export default function App() {
 
         {/* STÄUBLI — Robot Arm */}
         <Panel title="St&auml;ubli Robot Arm" bodyPart="Kinematic Boundary" icon="🤖" status={isServoFault || isEstop ? "error" : "ok"} zone="Z3 REAR" domain={OT}>
-          <Metric label="EtherCAT Link (dedicated)" value="HEALTHY" status="ok" />
-          <Metric label="Schunk UXB 24V (Z3)" value="POWERED" status="ok" />
           <Metric label='diServo["Enable"]' value={pinStates[6] ? "HIGH" : "LOW"} status={pinStates[6] ? "ok" : "error"} />
-          <Metric label="Servo Status" value={isServoFault ? "FAULT — AXIS 3" : isEstop ? "LOCKED OUT" : "NOMINAL"} status={isServoFault || isEstop ? "error" : "ok"} />
-          {isServoFault && <div className="diagnosis-box" style={{ backgroundColor: C.redDim, border: `1px solid ${C.red}30`, color: C.amber, fontSize: 11 }}>
-            Axis 3 following error (recoverable). EtherCAT bus healthy. Software fault, not mechanical. Note: XYZ kinematics run on isolated EtherCAT &mdash; PLC only sends permissive signals.
-          </div>}
+          <Metric label="Servo Status" value={isServoFault ? `FAULT — ${robotMetrics.faultCode}` : isEstop ? "LOCKED OUT" : "NOMINAL"} status={isServoFault || isEstop ? "error" : "ok"} />
+
+          {/* Per-axis table */}
           <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 6, marginTop: 4 }}>
-            <div style={{ fontSize: 9, color: C.muted, marginBottom: 4, textTransform: "uppercase", letterSpacing: 0.8 }}>Kinematic Boundary</div>
-            <div style={{ fontSize: 10, color: C.dim, lineHeight: 1.5 }}>
-              PLC provides <em>permissive</em> signals only. Sub-ms motion data runs on isolated EtherCAT between Robot Controller and servos.
+            <div style={{ fontSize: 9, color: C.muted, marginBottom: 4, textTransform: "uppercase", letterSpacing: 0.8 }}>Per-Axis Diagnostics</div>
+            <div style={{
+              display: "grid", gridTemplateColumns: "32px 52px 40px 44px 1fr",
+              gap: 1, padding: "4px 6px", backgroundColor: C.bg, borderRadius: "4px 4px 0 0", border: `1px solid ${C.border}`, borderBottom: "none",
+            }}>
+              {["AXIS", "JOINT", "TEMP", "TORQ", "STATUS"].map(h => (
+                <span key={h} style={{ fontSize: 7, fontWeight: 700, color: C.muted, letterSpacing: 0.5 }}>{h}</span>
+              ))}
             </div>
+            <div style={{ border: `1px solid ${C.border}`, borderRadius: "0 0 4px 4px", overflow: "hidden" }}>
+              {robotMetrics.axes.map(ax => {
+                const isFault = ax.status === "fault";
+                const isStopped = ax.status === "stopped";
+                const tempWarn = ax.temp > 60;
+                const torqueWarn = ax.torque > 50;
+                return (
+                  <div key={ax.id} style={{
+                    display: "grid", gridTemplateColumns: "32px 52px 40px 44px 1fr",
+                    gap: 1, padding: "3px 6px", alignItems: "center",
+                    backgroundColor: isFault ? C.redDim : "transparent",
+                    borderBottom: `1px solid ${C.border}`,
+                  }}>
+                    <span className="mono" style={{ fontSize: 10, fontWeight: 700, color: isFault ? C.red : C.text }}>J{ax.id}</span>
+                    <span style={{ fontSize: 8, color: C.dim }}>{ax.name}</span>
+                    <span className="mono" style={{ fontSize: 9, fontWeight: 600, color: tempWarn ? C.amber : C.dim }}>{ax.temp}°</span>
+                    <span className="mono" style={{ fontSize: 9, fontWeight: 600, color: isFault ? C.red : torqueWarn ? C.amber : C.dim }}>{ax.torque}%</span>
+                    <span className="mono" style={{ fontSize: 8, fontWeight: 700, color: isFault ? C.red : isStopped ? C.amber : C.green }}>
+                      {isFault ? ax.error : isStopped ? "STOPPED" : ax.position !== null ? `${ax.position}°` : "—"}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* EtherCAT + cycle stats */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, marginTop: 6 }}>
+            <div style={{ padding: "6px 8px", borderRadius: 4, backgroundColor: C.bg, border: `1px solid ${C.border}` }}>
+              <div style={{ fontSize: 8, color: C.muted, fontWeight: 700, letterSpacing: 0.5, marginBottom: 2 }}>ETHERCAT BUS</div>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ fontSize: 8, color: C.dim }}>Packets</span>
+                <span className="mono" style={{ fontSize: 8, fontWeight: 600, color: C.green }}>{robotMetrics.ethercat.packetRate}/s</span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ fontSize: 8, color: C.dim }}>Errors</span>
+                <span className="mono" style={{ fontSize: 8, fontWeight: 600, color: robotMetrics.ethercat.errors > 0 ? C.red : C.green }}>{robotMetrics.ethercat.errors}</span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ fontSize: 8, color: C.dim }}>Uptime</span>
+                <span className="mono" style={{ fontSize: 8, color: C.dim }}>{robotMetrics.ethercat.uptime}</span>
+              </div>
+            </div>
+            <div style={{ padding: "6px 8px", borderRadius: 4, backgroundColor: C.bg, border: `1px solid ${C.border}` }}>
+              <div style={{ fontSize: 8, color: C.muted, fontWeight: 700, letterSpacing: 0.5, marginBottom: 2 }}>CYCLE INFO</div>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ fontSize: 8, color: C.dim }}>Total</span>
+                <span className="mono" style={{ fontSize: 8, fontWeight: 600, color: C.dim }}>{robotMetrics.totalCycles.toLocaleString()}</span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ fontSize: 8, color: C.dim }}>Cycle time</span>
+                <span className="mono" style={{ fontSize: 8, fontWeight: 600, color: C.dim }}>{robotMetrics.cycleTime ? `${robotMetrics.cycleTime}s` : "—"}</span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ fontSize: 8, color: C.dim }}>Last home</span>
+                <span className="mono" style={{ fontSize: 8, color: C.dim }}>{robotMetrics.lastHome}</span>
+              </div>
+            </div>
+          </div>
+
+          {isServoFault && <div className="diagnosis-box" style={{ backgroundColor: C.redDim, border: `1px solid ${C.red}30`, color: C.amber, fontSize: 11, marginTop: 6 }}>
+            {robotMetrics.faultCode}: Axis 3 following error, torque spike to {robotMetrics.axes[2].torque}%. Motor temp {robotMetrics.axes[2].temp}°C (limit 85°C — not thermal). Likely unexpected load or collision. EtherCAT healthy. Recoverable remotely.
+          </div>}
+
+          <div style={{ marginTop: 4, fontSize: 9, color: C.dim }}>
+            <em>PLC sends permissive signals only. Sub-ms kinematics on isolated EtherCAT.</em>
           </div>
         </Panel>
 
@@ -256,7 +329,7 @@ export default function App() {
               {[
                 { label: "FX5UC PLC (OT)", val: isEstop ? "E-STOP" : "Active", ok: !isEstop },
                 { label: "Click PLC Aux (OT)", val: "Active", ok: true },
-                { label: "Apera Servers (IT)", val: isAperaCrash ? "FAULT" : "Healthy", ok: !isAperaCrash },
+                { label: "Apera Servers (IT)", val: isAperaCrash ? "FAULT" : isAperaMemory ? "MEM LEAK" : "Healthy", ok: !isAperaCrash && !isAperaMemory },
                 { label: "EtherCAT / Stäubli", val: isServoFault ? "FAULT" : "Healthy", ok: !isServoFault },
                 { label: "PoE Cameras (IT)", val: "Streaming", ok: true },
                 { label: "Stride Linx VPN", val: isRouterFreeze ? "DOWN" : "Up", ok: !isRouterFreeze },
@@ -280,13 +353,10 @@ export default function App() {
       {/* === VISION SUBSYSTEM (IT DOMAIN) === */}
       <div style={{ marginBottom: 14 }}>
         <VisionStatus
-          status={isAperaCrash ? "error" : isAperaDrift ? "warn" : "ok"}
-          serverStatus={{
-            front: isAperaCrash ? "NOT RESPONDING" : "RUNNING",
-            rear: "RUNNING",
-          }}
-          confidence={isAperaCrash ? 0 : isAperaDrift ? j(62, 3) : j(96.4, 2)}
-          fps={isAperaCrash ? 0 : j(28, 3)}
+          status={isAperaCrash ? "error" : isAperaMemory ? "slow" : isAperaDrift ? "warn" : "ok"}
+          serverMetrics={visionMetrics}
+          confidence={isAperaCrash ? 0 : isAperaMemory ? j(78, 4) : isAperaDrift ? j(62, 3) : j(96.4, 2)}
+          fps={isAperaCrash ? 0 : isAperaMemory ? j(8, 2) : j(28, 3)}
         />
       </div>
 
