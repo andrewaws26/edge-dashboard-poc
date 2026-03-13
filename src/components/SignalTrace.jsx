@@ -21,10 +21,10 @@ const TraceStep = ({ label, detail, zone, status, isLast }) => (
         <div style={{
           fontSize: 9, color: C.red, fontWeight: 800, marginTop: 4,
           animation: "blink 1s step-end infinite", letterSpacing: 0.5,
-        }}>\u2717 FAULT ISOLATED HERE</div>
+        }}>✗ FAULT ISOLATED HERE</div>
       )}
       {status === "ok" && (
-        <div style={{ fontSize: 9, color: C.green, fontWeight: 600, marginTop: 3 }}>\u2713 PASS</div>
+        <div style={{ fontSize: 9, color: C.green, fontWeight: 600, marginTop: 3 }}>✓ PASS</div>
       )}
     </div>
     {!isLast && (
@@ -32,7 +32,7 @@ const TraceStep = ({ label, detail, zone, status, isLast }) => (
         display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
         padding: "0 2px", flexShrink: 0,
       }}>
-        <span style={{ color: status === "fault" ? C.red : C.green, fontSize: 16, fontWeight: 700 }}>\u2192</span>
+        <span style={{ color: status === "fault" ? C.red : C.green, fontSize: 16, fontWeight: 700 }}>→</span>
         <span style={{
           fontSize: 7, color: status === "fault" ? C.red : C.muted,
           fontWeight: 600, whiteSpace: "nowrap",
@@ -49,7 +49,7 @@ export const SignalTrace = ({ steps, title, subtitle }) => (
     padding: "16px 20px",
   }}>
     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-      <span style={{ fontSize: 16 }}>\u26A1</span>
+      <span style={{ fontSize: 16 }}>⚡</span>
       <span style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1.2, color: C.dim }}>{title}</span>
     </div>
     {subtitle && <div style={{ fontSize: 10, color: C.muted, marginBottom: 10, textTransform: "uppercase", letterSpacing: 0.8 }}>{subtitle}</div>}

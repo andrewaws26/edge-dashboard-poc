@@ -18,11 +18,11 @@ export const Toast = ({ message, type, visible }) => {
     : type === "info" ? C.cyan
     : type === "error" ? C.red
     : C.accent;
-  const icon = type === "success" ? "\u2713"
-    : type === "warning" ? "\u26A0"
-    : type === "info" ? "\u2139"
-    : type === "error" ? "\u2717"
-    : "\u2191";
+  const icon = type === "success" ? "✓"
+    : type === "warning" ? "⚠"
+    : type === "info" ? "ℹ"
+    : type === "error" ? "✗"
+    : "↑";
 
   return (
     <div className="toast" style={{ backgroundColor: bg, border: `1px solid ${borderC}40`, color }}>

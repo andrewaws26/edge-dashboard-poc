@@ -46,7 +46,7 @@ export const ZoneTopology = ({ scenario }) => {
 
   return (
     <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-      <ZoneBox zone="ZONE 1" title="Front Cab \u2014 Command Center" color={C.accent} status={isAperaCrash || isRouterFreeze ? "error" : "ok"}>
+      <ZoneBox zone="ZONE 1" title="Front Cab — Command Center" color={C.accent} status={isAperaCrash || isRouterFreeze ? "error" : "ok"}>
         <div style={{ fontSize: 9, color: C.muted, textTransform: "uppercase", letterSpacing: 0.6 }}>Compute & Control</div>
         <Device name="Dell Apera Server 1 (Front)" domain={IT} status={isAperaCrash ? "error" : "ok"} detail={isAperaCrash ? "NOT RESPONDING" : "RUN"} />
         <Device name="Dell Apera Server 2 (Rear)" domain={IT} status="ok" detail="RUN" />
@@ -60,7 +60,7 @@ export const ZoneTopology = ({ scenario }) => {
         <Device name="ZipLink Breakout Boards" domain={OT} status="ok" detail="TERMINATED" />
       </ZoneBox>
 
-      <ZoneBox zone="ZONE 2" title="Middle \u2014 Power Generation" color={C.amber} status="ok">
+      <ZoneBox zone="ZONE 2" title="Middle — Power Generation" color={C.amber} status="ok">
         <div style={{ fontSize: 9, color: C.muted, textTransform: "uppercase", letterSpacing: 0.6 }}>Prime Power</div>
         <Device name="Engine Generator" status="ok" detail="RUNNING" />
         <Device name="Battery Bank" status="ok" detail="98% SOC" />
@@ -83,9 +83,9 @@ export const ZoneTopology = ({ scenario }) => {
         </div>
       </ZoneBox>
 
-      <ZoneBox zone="ZONE 3" title="Rear \u2014 Robot & Distribution" color={C.purple} status={isServoFault ? "error" : "ok"}>
+      <ZoneBox zone="ZONE 3" title="Rear — Robot & Distribution" color={C.purple} status={isServoFault ? "error" : "ok"}>
         <div style={{ fontSize: 9, color: C.muted, textTransform: "uppercase", letterSpacing: 0.6 }}>Actuation</div>
-        <Device name="St\u00E4ubli Robot Arm" domain={OT} status={isServoFault ? "error" : "ok"} detail={isServoFault ? "AXIS 3 FAULT" : "NOMINAL"} />
+        <Device name="Stäubli Robot Arm" domain={OT} status={isServoFault ? "error" : "ok"} detail={isServoFault ? "AXIS 3 FAULT" : "NOMINAL"} />
         <Device name="Conveyor Belt Assembly" domain={OT} status="ok" detail="FWD" />
         <div style={{ fontSize: 9, color: C.muted, textTransform: "uppercase", letterSpacing: 0.6, marginTop: 4 }}>Control Box</div>
         <Device name="Schunk UXB 24V Controller" domain={OT} status="ok" detail="POWERED" />

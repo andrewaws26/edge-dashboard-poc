@@ -12,11 +12,11 @@ export const GlobalStateBanner = ({ eStop, operationMode, maintenanceMode }) => 
     state = "SYSTEM HALTED";
     color = C.red; bg = C.redDim; border = C.red;
     icon = "🛑";
-    detail = "Emergency Stop circuit OPEN \u2014 diSafteyStop = FALSE. All motion locked out. Physical E-Stop must be reset.";
+    detail = "Emergency Stop circuit OPEN — diSafteyStop = FALSE. All motion locked out. Physical E-Stop must be reset.";
   } else if (conflict) {
     state = "STATE CONFLICT";
     color = C.red; bg = C.redDim; border = C.red;
-    icon = "\u26A0";
+    icon = "⚠";
     detail = "diOperation[\"Start\"] and diMaintenance[\"Mode\"] both TRUE simultaneously. Possible physical switch failure. Investigate immediately.";
   } else if (maintenance) {
     state = "MAINTENANCE LOCKOUT";
@@ -29,9 +29,9 @@ export const GlobalStateBanner = ({ eStop, operationMode, maintenanceMode }) => 
     icon = "🏭";
     detail = "Normal operation. PLC allowing conveyor motion and vision-triggered robot cycles.";
   } else {
-    state = "IDLE \u2014 AWAITING MODE";
+    state = "IDLE — AWAITING MODE";
     color = C.dim; bg = C.bg; border = C.border;
-    icon = "\u23F8";
+    icon = "⏸";
     detail = "Safety circuit closed. No operating mode selected. Waiting for operator input.";
   }
 

@@ -25,7 +25,7 @@ export const DiagnosisPanel = ({ diagnosis, operatorAction, remoteFix, traceStep
                   border: `1px solid ${s.status === "fault" ? C.red + "30" : s.status === "ok" ? C.green + "20" : C.border}`,
                 }}>
                   <span style={{ fontSize: 10, width: 16, textAlign: "center" }}>
-                    {s.status === "fault" ? "\u2717" : s.status === "ok" ? "\u2713" : "\u2014"}
+                    {s.status === "fault" ? "✗" : s.status === "ok" ? "✓" : "—"}
                   </span>
                   <span style={{ color: s.status === "fault" ? C.red : s.status === "ok" ? C.green : C.dim }}>{s.label}</span>
                   {s.detail && (
