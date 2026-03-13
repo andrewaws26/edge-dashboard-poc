@@ -6,7 +6,7 @@ A read-only observability dashboard for a mobile robotic autonomous vehicle (RAI
 ## Quick Start
 ```bash
 npm install
-npm run dev      # Start dev server (Vite)
+npm run dev      # Start development server (Vite)
 npm run build    # Production build
 npm run preview  # Preview production build
 ```
