@@ -95,14 +95,14 @@ export const PinTable = ({ pinStates, faultedPins }) => {
                 <span className="mono" style={{
                   fontSize: 11, fontWeight: 700,
                   color: state === undefined ? C.muted : state ? C.green : (isSafety ? C.red : C.muted),
-                }}>{state === undefined ? "\u2014" : state ? "HIGH" : "LOW"}</span>
+                }}>{state === undefined ? "—" : state ? "HIGH" : "LOW"}</span>
               </div>
 
               {/* Health */}
               <span style={{
                 fontSize: 9, fontWeight: 700,
                 color: faulted ? C.red : safetyFault ? C.red : C.green,
-              }}>{faulted ? "FAULT" : safetyFault ? "ALARM" : "\u2713 OK"}</span>
+              }}>{faulted ? "FAULT" : safetyFault ? "ALARM" : "✓ OK"}</span>
             </div>
           );
         })}
@@ -111,7 +111,7 @@ export const PinTable = ({ pinStates, faultedPins }) => {
       {/* Summary */}
       <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8, padding: "0 4px" }}>
         <span style={{ fontSize: 10, color: C.muted }}>
-          {faultedPins.length === 0 ? "25/25 pins healthy" : `${25 - faultedPins.length}/25 healthy \u2014 ${faultedPins.length} fault${faultedPins.length > 1 ? "s" : ""}`}
+          {faultedPins.length === 0 ? "25/25 pins healthy" : `${25 - faultedPins.length}/25 healthy — ${faultedPins.length} fault${faultedPins.length > 1 ? "s" : ""}`}
         </span>
         {faultedPins.length > 0 && (
           <span style={{ fontSize: 10, fontWeight: 700, color: C.red }}>

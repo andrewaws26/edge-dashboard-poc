@@ -188,7 +188,7 @@ export default function App() {
             <Metric label="Telemetry (Stride Linx VPN)" value={isRouterFreeze ? "UNRESPONSIVE" : "CONNECTED"} status={isRouterFreeze ? "error" : "ok"} small />
             <Metric label="Pi Cellular Backhaul" value="CONNECTED" status="ok" small />
             <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 6, marginTop: 4 }}>
-              <Metric label="Latency (VPN)" value={isRouterFreeze ? "\u2014" : j(34, 8)} unit={isRouterFreeze ? "" : "ms"} status={isRouterFreeze ? "error" : "ok"} small />
+              <Metric label="Latency (VPN)" value={isRouterFreeze ? "—" : j(34, 8)} unit={isRouterFreeze ? "" : "ms"} status={isRouterFreeze ? "error" : "ok"} small />
               <Metric label="Latency (Cellular)" value={j(120, 20)} unit="ms" status="ok" small />
             </div>
           </Panel>
@@ -215,7 +215,7 @@ export default function App() {
           <Metric label="EtherCAT Link (dedicated)" value="HEALTHY" status="ok" />
           <Metric label="Schunk UXB 24V (Z3)" value="POWERED" status="ok" />
           <Metric label='diServo["Enable"]' value={pinStates[6] ? "HIGH" : "LOW"} status={pinStates[6] ? "ok" : "error"} />
-          <Metric label="Servo Status" value={isServoFault ? "FAULT \u2014 AXIS 3" : isEstop ? "LOCKED OUT" : "NOMINAL"} status={isServoFault || isEstop ? "error" : "ok"} />
+          <Metric label="Servo Status" value={isServoFault ? "FAULT — AXIS 3" : isEstop ? "LOCKED OUT" : "NOMINAL"} status={isServoFault || isEstop ? "error" : "ok"} />
           {isServoFault && <div className="diagnosis-box" style={{ backgroundColor: C.redDim, border: `1px solid ${C.red}30`, color: C.amber, fontSize: 11 }}>
             Axis 3 following error (recoverable). EtherCAT bus healthy. Software fault, not mechanical. Note: XYZ kinematics run on isolated EtherCAT &mdash; PLC only sends permissive signals.
           </div>}
@@ -257,7 +257,7 @@ export default function App() {
                 { label: "FX5UC PLC (OT)", val: isEstop ? "E-STOP" : "Active", ok: !isEstop },
                 { label: "Click PLC Aux (OT)", val: "Active", ok: true },
                 { label: "Apera Servers (IT)", val: isAperaCrash ? "FAULT" : "Healthy", ok: !isAperaCrash },
-                { label: "EtherCAT / St\u00E4ubli", val: isServoFault ? "FAULT" : "Healthy", ok: !isServoFault },
+                { label: "EtherCAT / Stäubli", val: isServoFault ? "FAULT" : "Healthy", ok: !isServoFault },
                 { label: "PoE Cameras (IT)", val: "Streaming", ok: true },
                 { label: "Stride Linx VPN", val: isRouterFreeze ? "DOWN" : "Up", ok: !isRouterFreeze },
                 { label: "24V DC Bus (OT)", val: "Nominal", ok: true },
