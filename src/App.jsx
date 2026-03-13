@@ -11,6 +11,7 @@ import { PinTable } from './components/PinTable';
 import { ZoneTopology } from './components/ZoneTopology';
 import { VisionStatus } from './components/VisionStatus';
 import { SignalTrace } from './components/SignalTrace';
+import { VehicleSchematic } from './components/VehicleSchematic';
 import {
   SCENARIO_BUTTONS, SCENARIO_LOGS, SCENARIO_TOASTS, DIAGNOSIS_MAP,
   SCENARIO_STATE_MACHINE, SCENARIO_PIN_STATES, SCENARIO_FAULTED_PINS,
@@ -202,6 +203,9 @@ export default function App() {
         remoteFix={currentDiagnosis.remoteFix}
         traceSteps={currentDiagnosis.traceSteps}
       />}
+
+      {/* === VEHICLE SCHEMATIC === */}
+      <VehicleSchematic scenario={scenario} />
 
       {/* === ZONE TOPOLOGY === */}
       <div style={{ marginBottom: 14 }}>
