@@ -6,6 +6,7 @@ export const Metric = ({ label, value, unit, status, small }) => (
     <div style={{ display: "flex", alignItems: "baseline", gap: 5 }}>
       <span className="mono" style={{
         fontSize: small ? 16 : 22, fontWeight: 700,
+        transition: "color 0.4s ease",
         color: status === "ok" ? C.green
           : status === "warn" ? C.amber
           : status === "error" ? C.red

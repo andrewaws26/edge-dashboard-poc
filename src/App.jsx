@@ -20,6 +20,8 @@ import {
 export default function App() {
   const [tick, setTick] = useState(0);
   const [scenario, setScenario] = useState("healthy");
+  const [clock, setClock] = useState(new Date());
+  const [uptime, setUptime] = useState(0);
 
   const [toast, setToast] = useState({ message: "", type: "success", visible: false });
   const toastTimer = useRef(null);
@@ -41,7 +43,53 @@ export default function App() {
     return () => clearInterval(id);
   }, []);
 
+  // Live clock + uptime
+  useEffect(() => {
+    const id = setInterval(() => {
+      setClock(new Date());
+      setUptime(u => u + 1);
+    }, 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  const fmtUptime = (s) => {
+    const h = Math.floor(s / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    const sec = s % 60;
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+  };
+
   const j = useCallback((b, r) => +(b + (Math.random() - 0.5) * r).toFixed(1), []);
+
+  // Ambient telemetry log entries (healthy mode only)
+  const ambientMessages = useRef([
+    { cmd: "PLC scan cycle: 4.1ms — nominal", type: "info" },
+    { cmd: "EtherCAT heartbeat OK — 0 frame errors", type: "info" },
+    { cmd: "Vision FPS: 28.3 — confidence 96.2%", type: "info" },
+    { cmd: "24V DC bus: 24.1V — Rhino PSR stable", type: "info" },
+    { cmd: "Stride Linx VPN keepalive — RTT 32ms", type: "info" },
+    { cmd: "Pi cellular backhaul — signal strong", type: "info" },
+    { cmd: "Belt cycle #14,392 completed — part placed", type: "info" },
+    { cmd: "Gripper MAG/DEMAG cycle nominal", type: "info" },
+    { cmd: "Robot J1-J6 temps nominal (38-44°C)", type: "info" },
+    { cmd: "Camera 1 exposure auto-adjusted — +2EV", type: "info" },
+    { cmd: "Apera Server 1 — CPU 34%, RAM 11.2/32 GB", type: "info" },
+    { cmd: "Apera Server 2 — inference 42ms avg", type: "info" },
+    { cmd: "diBelt[\"Part_Present\"] → HIGH — pick queued", type: "trace" },
+    { cmd: "diServo[\"Enable\"] → HIGH — motion permitted", type: "trace" },
+    { cmd: "Netgear switch — 0 CRC errors, 0 drops", type: "info" },
+    { cmd: "TRENDnet PoE — all ports delivering power", type: "info" },
+  ]);
+
+  useEffect(() => {
+    if (scenario !== "healthy") return;
+    const id = setInterval(() => {
+      const msgs = ambientMessages.current;
+      const msg = msgs[Math.floor(Math.random() * msgs.length)];
+      addLog(msg.cmd, msg.type);
+    }, 3000 + Math.random() * 2000);
+    return () => clearInterval(id);
+  }, [scenario]);
 
   // Scenario effects
   useEffect(() => {
@@ -96,11 +144,16 @@ export default function App() {
             <h1 style={{ fontSize: 24, fontWeight: 800, color: C.white, letterSpacing: -0.5 }}>
               RAIV #3 <span style={{ color: C.dim, fontWeight: 400, fontSize: 15 }}>Digital Twin — Nervous System</span>
             </h1>
-            <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>
-              B&B Enterprises &bull; Louisville, KY → Field Site &bull;
-              Telemetry: <span style={{ color: isRouterFreeze ? C.red : C.green }}>{isRouterFreeze ? "VPN Down" : "Stride Linx VPN"}</span>
-              {" "}&bull; Backhaul: <span style={{ color: C.green }}>Pi Cellular</span>
-              {" "}&bull; <span className="mono" style={{ color: C.dim }}>t={tick}</span>
+            <div style={{ fontSize: 11, color: C.muted, marginTop: 2, display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+              <span>B&B Enterprises &bull; Louisville, KY → Field Site</span>
+              <span>&bull; Telemetry: <span style={{ color: isRouterFreeze ? C.red : C.green }}>{isRouterFreeze ? "VPN Down" : "Stride Linx VPN"}</span></span>
+              <span>&bull; Backhaul: <span style={{ color: C.green }}>Pi Cellular</span></span>
+              <span style={{ borderLeft: `1px solid ${C.border}`, paddingLeft: 6, display: "inline-flex", alignItems: "center", gap: 5 }}>
+                <span style={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: C.green, animation: "liveDot 2s ease-in-out infinite", flexShrink: 0 }} />
+                <span className="mono" style={{ color: C.green, fontSize: 10 }}>{clock.toLocaleTimeString()}</span>
+                <span className="mono" style={{ color: C.dim, fontSize: 9 }}>UP {fmtUptime(uptime)}</span>
+                <span className="mono" style={{ color: C.muted, fontSize: 9 }}>t={tick}</span>
+              </span>
             </div>
           </div>
         </div>
