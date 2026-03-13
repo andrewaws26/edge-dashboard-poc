@@ -43,7 +43,7 @@ export const VisionStatus = ({ status, serverStatus, confidence, fps }) => {
                     border: `1px solid ${isDown && i === 3 ? C.red + "40" : C.border}`,
                     color: isDown && i === 3 ? C.red : C.dim,
                   }}>{step}</span>
-                  {i < arr.length - 1 && <span style={{ color: C.muted, fontSize: 10 }}>\u2192</span>}
+                  {i < arr.length - 1 && <span style={{ color: C.muted, fontSize: 10 }}>→</span>}
                 </span>
               ))}
             </div>
